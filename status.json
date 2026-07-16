@@ -1,6 +1,7 @@
 {
-  "serviceStatus": "online",
-  "message": "Servicio funcionando normalmente",
-  "launcherVersion": "0.0.4",
-  "maintenance": false
+  "server_online": true,
+  "message": "Servicio funcionando con normalidad",
+  "notice_enabled": true,
+  "notice_title": "Aviso importante",
+  "notice_text": "Bienvenido a TV Digital OS"
 }
