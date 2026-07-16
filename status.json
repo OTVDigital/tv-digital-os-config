@@ -2,5 +2,5 @@
   "serviceStatus": "online",
   "message": "Servicio funcionando normalmente",
   "launcherVersion": "0.0.4",
-  "maintenance": false
+  "maintenance": true
 }
