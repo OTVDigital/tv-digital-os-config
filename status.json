@@ -1,7 +1,26 @@
 {
   "server_online": true,
   "message": "Servicio funcionando con normalidad",
+
   "notice_enabled": true,
   "notice_title": "Aviso importante",
-  "notice_text": "Bienvenido a TV Digital OS"
+  "notice_text": "Bienvenido a TV Digital OS",
+
+  "apps": [
+    {
+      "name": "TV Digital",
+      "version": "1.0.0",
+      "apk": "https://TU-URL-DE-LA-APK"
+    },
+    {
+      "name": "Xuper",
+      "version": "5.1.1",
+      "apk": "https://TU-URL-DE-LA-APK"
+    },
+    {
+      "name": "Cleaner",
+      "version": "1.0",
+      "apk": "https://TU-URL-DE-LA-APK"
+    }
+  ]
 }
