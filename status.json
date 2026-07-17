@@ -4,23 +4,23 @@
 
   "notice_enabled": true,
   "notice_title": "Aviso importante",
-  "notice_text": "Puto el que lee",
+  "notice_text": "Bienvenido a TV Digital OS",
 
   "apps": [
     {
+      "package": "com.example.tvplusdos",
       "name": "TV Digital",
-      "version": "1.0.0",
-      "apk": "https://TU-URL-DE-LA-APK"
+      "version": "1.7"
     },
     {
-      "name": "Xuper",
-      "version": "5.1.1",
-      "apk": "https://TU-URL-DE-LA-APK"
+      "package": "com.android.mgstxNF",
+      "name": "Series y Películas",
+      "version": "6.72.1"
     },
     {
-      "name": "Cleaner",
-      "version": "1.0",
-      "apk": "https://TU-URL-DE-LA-APK"
+      "package": "org.smarttube.stable",
+      "name": "Videos en Línea",
+      "version": "31.94"
     }
   ]
 }
