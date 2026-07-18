@@ -10,7 +10,7 @@
   "menu": {
   "live_tv": true,
   "movies": true,
-  "videos": true,
+  "videos": false,
   "store": true,
   "tools": false,
   "settings": true
