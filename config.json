@@ -14,15 +14,15 @@
 
   "welcome": {
     "enabled": true,
-    "title": "BIENVENIDO A TV DIGITAL OS",
-    "text": "Disfrutá tus aplicaciones favoritas desde una interfaz simple, rápida y optimizada para tu TV Box."
+"title": "PRUEBA REMOTA",
+"text": "Este mensaje fue modificado desde GitHub sin recompilar la aplicación."
   },
 
   "apps": [
     {
       "package": "com.example.tvplusdos",
       "name": "TV Digital",
-      "version": "1.8",
+      "version": "1.7",
       "description": "Televisión en vivo con canales nacionales, deportes, noticias y entretenimiento.",
       "size": "42 MB",
       "updated": "17/07/2026",
