@@ -7,20 +7,31 @@
   "notice_text": "Bienvenido a TV Digital OS",
 
   "apps": [
-    {
-      "package": "com.example.tvplusdos",
-      "name": "TV Digital",
-      "version": "1.8"
-    },
-    {
-      "package": "com.android.mgstxNF",
-      "name": "Series y Películas",
-      "version": "6.72.1"
-    },
-    {
-      "package": "org.smarttube.stable",
-      "name": "Videos en Línea",
-      "version": "31.94"
-    }
-  ]
-}
+  {
+    "package": "com.example.tvplusdos",
+    "name": "TV Digital",
+    "version": "1.8",
+    "description": "Televisión en vivo con canales nacionales, deportes, noticias y entretenimiento.",
+    "size": "42 MB",
+    "updated": "17/07/2026",
+    "recommended": true
+  },
+  {
+    "package": "com.android.mgstxNF",
+    "name": "Series y Películas",
+    "version": "6.72.1",
+    "description": "Aplicación de entretenimiento para disfrutar series y películas.",
+    "size": "38 MB",
+    "updated": "17/07/2026",
+    "recommended": true
+  },
+  {
+    "package": "org.smarttube.stable",
+    "name": "Videos en Línea",
+    "version": "31.94",
+    "description": "Reproductor optimizado para acceder a videos en línea desde el TV Box.",
+    "size": "25 MB",
+    "updated": "17/07/2026",
+    "recommended": false
+  }
+]
