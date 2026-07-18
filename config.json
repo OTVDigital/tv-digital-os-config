@@ -7,6 +7,14 @@
     "theme": "dark"
   },
 
+  "menu": {
+  "live_tv": true,
+  "movies": true,
+  "videos": true,
+  "store": true,
+  "tools": false,
+  "settings": true
+},
   "server": {
     "online": true,
     "message": "Servicio funcionando correctamente."
