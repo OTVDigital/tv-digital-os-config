@@ -5,7 +5,7 @@
     "show_store": true,
     "show_tools": false,
     "theme": "dark"
-    "background_url": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/backgrounds/default.jpg"
+    "background": "default.jpg"
   },
 
   "menu": {
