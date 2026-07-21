@@ -4,7 +4,7 @@
     "maintenance": false,
     "show_store": true,
     "show_tools": false,
-    "theme": "dark"
+    "theme": "dark",
     "background": "default.png"
   },
 
