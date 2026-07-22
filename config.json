@@ -21,6 +21,15 @@
     "message": "Servicio funcionando correctamente."
   },
 
+  "updates": {
+  "tv_digital": {
+    "package": "com.example.tvplusdos",
+    "name": "TV Digital",
+    "latest_version": "1.8",
+    "apk_url": "https://ejemplo.com/tv-digital-1.8.apk",
+    "enabled": true
+  }
+},
   "welcome": {
     "enabled": true,
 "title": "PRUEBA REMOTA",
