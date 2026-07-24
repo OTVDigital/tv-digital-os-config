@@ -21,7 +21,7 @@
     "message": "Servicio funcionando correctamente."
   },
 
-  "updates": [
+ "updates": [
   {
     "package": "com.example.tvplusdos",
     "name": "TV Digital",
@@ -29,12 +29,13 @@
     "file": "tvplus2-v1.8.apk",
     "enabled": true
   }
+],
+
+"welcome": {
+  "enabled": true,
+  "title": "PRUEBA REMOTA",
+  "text": "Este mensaje fue modificado desde GitHub sin recompilar la aplicación."
 },
-  "welcome": {
-    "enabled": true,
-"title": "PRUEBA REMOTA",
-"text": "Este mensaje fue modificado desde GitHub sin recompilar la aplicación."
-  },
 
   "apps": [
     {
