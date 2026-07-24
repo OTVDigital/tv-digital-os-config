@@ -21,16 +21,23 @@
     "message": "Servicio funcionando correctamente."
   },
 
- "updates": [
+"updates": [
   {
     "package": "com.example.tvplusdos",
     "name": "TV Digital",
     "version": "1.8",
     "file": "tvplus2-v1.8.apk",
     "enabled": true
+  },
+  {
+    "package": "org.smarttube.stable",
+    "name": "SmartTube",
+    "version": "99.0",
+    "file": "smarttube-prueba.apk",
+    "enabled": true
   }
 ],
-
+  
 "welcome": {
   "enabled": true,
   "title": "PRUEBA REMOTA",
