@@ -3,8 +3,12 @@
   "message": "Servicio funcionando correctamente.",
 
   "notice_enabled": true,
-  "notice_title": "BIENVENIDO A TV DIGITAL OS",
-  "notice_text": "Disfrutá tus aplicaciones favoritas desde una interfaz simple, rápida y optimizada para tu TV Box.",
+  "notice_level": "red",
+  "notice_id": "incidencia-canales-001",
+  "notice_title": "INCIDENCIA GENERAL",
+  "notice_text": "Estamos experimentando inconvenientes en algunos canales de TV. Nuestro equipo ya se encuentra trabajando para solucionarlo. No es necesario reinstalar ni modificar ninguna aplicación.",
+  "notice_updated": "01/08/2026 20:05",
+  "notice_show_once": false,
 
   "apps": [
     {
