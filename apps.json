@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "apps": [
+    {
+      "id": "tv",
+      "name": "TV Digital",
+      "description": "Aplicación oficial",
+      "package": "com.otv.tv",
+      "version": "1.0.0",
+      "apk": "https://github.com/OTVDigital/tv-digital-os-config/releases/download/v1.0.0/tv.apk",
+      "required": true
+    },
+    {
+      "id": "series",
+      "name": "Series",
+      "description": "Películas y series",
+      "package": "com.series.app",
+      "version": "1.0.0",
+      "apk": "",
+      "required": false
+    },
+    {
+      "id": "videos",
+      "name": "Videos",
+      "description": "Videos online",
+      "package": "com.videos.app",
+      "version": "1.0.0",
+      "apk": "",
+      "required": false
+    }
+  ]
+}
