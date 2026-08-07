@@ -5,17 +5,17 @@
       "id": "tv",
       "name": "TV Digital",
       "description": "Aplicación oficial",
-      "package": "com.otv.tv",
-      "version": "1.0.0",
-      "apk": "https://github.com/OTVDigital/tv-digital-os-config/releases/download/v1.0.0/tv.apk",
+      "package": "com.example.tvplusdos",
+      "version": "1.7",
+      "apk": "",
       "required": true
     },
     {
       "id": "series",
       "name": "Series",
       "description": "Películas y series",
-      "package": "com.series.app",
-      "version": "1.0.0",
+      "package": "com.android.mgstxNF",
+      "version": "6.72.1",
       "apk": "",
       "required": false
     },
@@ -23,8 +23,8 @@
       "id": "videos",
       "name": "Videos",
       "description": "Videos online",
-      "package": "com.videos.app",
-      "version": "1.0.0",
+      "package": "org.smarttube.stable",
+      "version": "31.94",
       "apk": "",
       "required": false
     }
