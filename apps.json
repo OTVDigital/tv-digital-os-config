@@ -6,7 +6,7 @@
       "name": "TV Digital",
       "description": "Aplicación oficial",
       "package": "com.example.tvplusdos",
-      "version": "1.7",
+      "version": "1.8",
       "apk": "",
       "required": true
     },
