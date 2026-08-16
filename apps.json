@@ -6,8 +6,8 @@
       "name": "TV Digital",
       "description": "Aplicación oficial",
       "package": "com.example.tvplusdos",
-      "version": "1.8",
-      "apk": "",
+      "version": "1.9",
+      "apk": "https://github.com/OTVDigital/tv-digital-os-config/raw/refs/heads/main/apps/tvplus2-v1.9.apk",
       "required": true
     },
     {
