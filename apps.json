@@ -4,10 +4,34 @@
     {
       "id": "tv",
       "name": "TV Digital",
-      "description": "Aplicación oficial",
+      "description": "Canales en vivo",
       "package": "com.example.tvplusdos",
       "version": "1.9",
-      "apk": "https://github.com/OTVDigital/tv-digital-os-config/raw/refs/heads/main/apps/tvplus2-v1.9.apk",
+      "apk": "URL_TVPLUS",
+      "category": "tv",
+      "recommended": false,
+      "required": true
+    },
+    {
+      "id": "series",
+      "name": "Series",
+      "description": "Películas y series",
+      "package": "com.android.mgstxNF",
+      "version": "6.72.1",
+      "apk": "",
+      "category": "series",
+      "recommended": false,
+      "required": true
+    },
+    {
+      "id": "videos",
+      "name": "SmartTube",
+      "description": "Videos en línea",
+      "package": "org.smarttube.stable",
+      "version": "31.94",
+      "apk": "",
+      "category": "videos",
+      "recommended": false,
       "required": true
     },
     {
@@ -20,26 +44,6 @@
       "category": "videos",
       "recommended": true,
       "required": false
-    },
-    {
-      "id": "series",
-      "name": "Series",
-      "description": "Películas y series",
-      "package": "com.android.mgstxNF",
-      "version": "6.72.1",
-      "apk": "",
-      "required": false
-    },
-    {
-     
-      "id": "videos",
-      "name": "Videos",
-      "description": "Videos online",
-      "package": "org.smarttube.stable",
-      "version": "31.94",
-      "apk": "",
-      "required": false
-      
     }
   ]
 }
