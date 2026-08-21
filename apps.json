@@ -11,12 +11,14 @@
       "required": true
     },
     {
-      "id": "recommended",
+      "id": "youtube",
       "name": "YouTube",
       "description": "Videos y entretenimiento",
       "package": "com.google.android.youtube.tv",
       "version": "2.05.03",
       "apk": "https://github.com/OTVDigital/tv-digital-os-config/raw/refs/heads/main/apps/youtube-tv-v2.05.03.apk",
+      "category": "videos",
+      "recommended": true,
       "required": false
     },
     {
