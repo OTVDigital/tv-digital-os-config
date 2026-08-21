@@ -12,11 +12,11 @@
     },
     {
       "id": "recommended",
-      "name": "Recomendada",
-      "description": "Aplicación verificada por OTV",
-      "package": "PAQUETE_REAL",
-      "version": "VERSION_REAL",
-      "apk": "URL_REAL_DEL_APK",
+      "name": "YouTube",
+      "description": "Videos y entretenimiento",
+      "package": "com.google.android.youtube.tv",
+      "version": "2.05.03",
+      "apk": "https://github.com/OTVDigital/tv-digital-os-config/raw/refs/heads/main/apps/youtube-tv-v2.05.03.apk",
       "required": false
     },
     {
