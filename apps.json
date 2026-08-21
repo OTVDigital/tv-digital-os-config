@@ -11,6 +11,15 @@
       "required": true
     },
     {
+      "id": "recommended",
+      "name": "Recomendada",
+      "description": "Aplicación verificada por OTV",
+      "package": "PAQUETE_REAL",
+      "version": "VERSION_REAL",
+      "apk": "URL_REAL_DEL_APK",
+      "required": false
+    },
+    {
       "id": "series",
       "name": "Series",
       "description": "Películas y series",
@@ -20,6 +29,7 @@
       "required": false
     },
     {
+     
       "id": "videos",
       "name": "Videos",
       "description": "Videos online",
@@ -27,6 +37,7 @@
       "version": "31.94",
       "apk": "",
       "required": false
+      
     }
   ]
 }
