@@ -32,8 +32,9 @@
       "apk": "",
       "category": "videos",
       "recommended": false,
-      "required": true
-     },
+      "required": false,
+      "remove": true
+    },
     {
       "id": "youtube",
       "name": "YouTube",
