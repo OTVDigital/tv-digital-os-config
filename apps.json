@@ -21,8 +21,7 @@
       "apk": "",
       "category": "series",
       "recommended": false,
-      "required": true,
-      "uninstall_first": true
+      "required": true
     },
     {
       "id": "videos",
@@ -33,7 +32,8 @@
       "apk": "",
       "category": "videos",
       "recommended": false,
-      "required": true     
+      "required": true,
+      "uninstall_first": true
     },
     {
       "id": "youtube",
