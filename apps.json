@@ -33,7 +33,7 @@
       "category": "videos",
       "recommended": false,
       "required": true,
-      "remove": true
+      "uninstall_first": true
     },
     {
       "id": "youtube",
