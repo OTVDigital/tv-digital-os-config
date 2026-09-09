@@ -21,8 +21,8 @@
       "apk": "",
       "category": "series",
       "recommended": false,
-      "required": true
-      "uninstall_first": true,
+      "required": true,
+      "uninstall_first": true
     },
     {
       "id": "videos",
