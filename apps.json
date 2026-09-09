@@ -32,8 +32,7 @@
       "apk": "",
       "category": "videos",
       "recommended": false,
-      "required": true
-      "uninstall_first": true
+      "required": true     
     },
     {
       "id": "youtube",
