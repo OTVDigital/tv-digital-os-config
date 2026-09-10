@@ -32,9 +32,9 @@
   "message": "Servicio funcionando correctamente.",
   "notice_enabled": true,
   "notice_level": "green",
-  "notice_id": "aviso-20260909-0002",
+  "notice_id": "aviso-20260909-2314",
   "notice_title": "SERVICIO NORMALIZADO",
   "notice_text": "El servicio ya funciona con normalidad. Si seguís viendo algún inconveniente, apagá y volvé a encender el equipo.",
-  "notice_updated": "09/09/2026 00:02",
-  "notice_show_once": false
+  "notice_updated": "09/09/2026 23:14",
+  "notice_show_once": true
 }
