@@ -5,8 +5,9 @@
     "show_store": true,
     "show_tools": false,
     "theme": "dark",
-    "background": "default.png"
-  },
+    "background": "primavera.png"
+  }
+},
 
   "menu": {
   "live_tv": true,
