@@ -7,21 +7,24 @@
       "description": "Canales en vivo",
       "package": "com.example.tvplusdos",
       "version": "1.9",
-      "apk": "URL_TVPLUS",
+      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/tvplus2-v1.9.apk",
       "category": "tv",
       "recommended": false,
-      "required": true
+      "required": true,
+      "sha256": "1beb0d722675528cb9f05df10c38f28671c5e2ccd91a33ab6c339a13a9454eb0"
     },
     {
       "id": "series",
       "name": "Series",
       "description": "Películas y series",
       "package": "com.android.mgstxNF",
-      "version": "6.72.1",
-      "apk": "",
+      "version": "4.34.7",
+      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/XuperTv-N0F4C3-v4.34.7-NF-OFICIAL.apk",
       "category": "series",
       "recommended": false,
-      "required": true
+      "required": true,
+      "sha256": "aa6cfd811f105ab2230449bdaaaf506a0bc003ea52a71eb933e36e744ebccdfe",
+      "uninstall_first": true
     },
     {
       "id": "videos",
@@ -29,11 +32,11 @@
       "description": "Videos en línea",
       "package": "org.smarttube.stable",
       "version": "31.94",
-      "apk": "",
+      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/smarttube_stable.apk",
       "category": "videos",
       "recommended": false,
       "required": false,
-      "remove": true
+      "sha256": "a56d1685b4fce55b47a58ecc8dae485cd1c183e60ff47cdab398ce4a0ae86f18"
     },
     {
       "id": "youtube",
