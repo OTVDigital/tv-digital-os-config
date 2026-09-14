@@ -48,6 +48,18 @@
       "category": "videos",
       "recommended": true,
       "required": false
+    },
+    {
+      "id": "otv-digital-os",
+      "name": "OTV Digital OS",
+      "description": "Sistema del equipo",
+      "package": "com.tvdigital.os",
+      "version": "1.0.11",
+      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/SistemaOTV.apk",
+      "category": "sistema",
+      "recommended": false,
+      "required": true,
+      "sha256": "dc6d201fe4851e1cfc502d2132b1128281d701729e98b126c4c173cc9980a512"
     }
   ]
 }
