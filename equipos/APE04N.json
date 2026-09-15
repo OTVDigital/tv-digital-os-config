@@ -1,10 +1,10 @@
 {
   "notice_enabled": true,
   "notice_level": "yellow",
-  "notice_id": "aviso-ape04n-20260915-1713",
-  "notice_title": "PRUEBA",
-  "notice_text": "PUTO EL QUE LEE",
-  "notice_updated": "15/09/2026 17:17",
+  "notice_id": "aviso-ape04n-20260915-1729",
+  "notice_title": "Hola",
+  "notice_text": "Probando",
+  "notice_updated": "15/09/2026 17:29",
   "notice_until": "16/09/2026 17:13",
-  "notice_show_once": false
+  "notice_show_once": true
 }
