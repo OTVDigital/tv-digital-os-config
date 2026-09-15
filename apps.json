@@ -18,12 +18,12 @@
       "name": "Series",
       "description": "Películas y series",
       "package": "com.android.mgstxNF",
-      "version": "4.34.7",
-      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/XuperTv-N0F4C3-v4.34.7-NF-OFICIAL.apk",
+      "version": "4.34.8",
+      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/XuperTv-N0F4C3-ConR-v4.34.8.apk",
       "category": "series",
       "recommended": false,
       "required": true,
-      "sha256": "aa6cfd811f105ab2230449bdaaaf506a0bc003ea52a71eb933e36e744ebccdfe",
+      "sha256": "6c25d01d5c120e518e5a60d9f246862f7dc20d2fc65a6424acb32d89b9dc3eb2",
       "uninstall_first": true
     },
     {
