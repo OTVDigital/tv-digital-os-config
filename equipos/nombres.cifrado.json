@@ -1,0 +1,10 @@
+{
+  "nota": "Datos privados de OTV Digital, cifrados. No editar a mano.",
+  "formato": 1,
+  "cifrado": "AES-GCM",
+  "kdf": "PBKDF2-SHA256",
+  "iteraciones": 310000,
+  "sal": "R+VZAwBC0fWgUoBDmY3s5Q==",
+  "iv": "GY9pTJKv3GcdIZ/z",
+  "datos": "WVmKxQYO+q+7wC/UCkRr25eD"
+}
