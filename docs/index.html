@@ -1,1 +1,3004 @@
+<meta charset="utf-8">
+<title>Consola OTV Digital</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
+<style>
+:root {
+  --ground:#EBEFF3; --surface:#FFFFFF; --sunken:#E1E7ED;
+  --ink:#141A21; --ink-2:#43505C; --ink-3:#6E7C89;
+  --rule:#CDD6DE; --rule-2:#E2E8EE;
+  --accent:#17566E; --accent-2:#E4EFF4; --btn-ink:#FFFFFF;
+  --ok:#1B7440; --ok-soft:#DFF0E6;
+  --warn:#8C6206; --warn-soft:#FBEEDA;
+  --bad:#AE271F; --bad-soft:#FAE3E1;
+  --ui:"Chivo","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:#0D1216; --surface:#161E25; --sunken:#101820;
+    --ink:#E3EAF0; --ink-2:#A9B8C4; --ink-3:#78899A;
+    --rule:#2A3841; --rule-2:#202B33;
+    --accent:#5CB2CE; --accent-2:#12303B; --btn-ink:#08121A;
+    --ok:#4FC07C; --ok-soft:#12301E;
+    --warn:#D9A63F; --warn-soft:#2E2311;
+    --bad:#EF7C6F; --bad-soft:#33150F;
+  }
+}
+:root[data-theme="dark"] {
+  --ground:#0D1216; --surface:#161E25; --sunken:#101820;
+  --ink:#E3EAF0; --ink-2:#A9B8C4; --ink-3:#78899A;
+  --rule:#2A3841; --rule-2:#202B33;
+  --accent:#5CB2CE; --accent-2:#12303B; --btn-ink:#08121A;
+  --ok:#4FC07C; --ok-soft:#12301E;
+  --warn:#D9A63F; --warn-soft:#2E2311;
+  --bad:#EF7C6F; --bad-soft:#33150F;
+}
+
+*{box-sizing:border-box}
+/* Fuera de Claude no hay hoja base que respete hidden frente a un display propio. */
+[hidden]{display:none!important}
+body{background:var(--ground);color:var(--ink);font-family:var(--ui);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;margin:0}
+.shell{max-width:1240px;margin:0 auto;padding:0 18px 72px}
+code{font-family:var(--mono);font-size:.86em;background:var(--sunken);border:1px solid var(--rule-2);border-radius:3px;padding:1px 5px;word-break:break-word}
+
+/* Encabezado y pestañas */
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:24px 0 14px}
+h1{font-weight:900;font-size:clamp(24px,4.4vw,36px);letter-spacing:-.028em;line-height:1;margin:0}
+.sub{color:var(--ink-3);font-size:14px;margin:7px 0 0;max-width:58ch}
+.sync{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);display:flex;align-items:center;gap:7px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);flex:none}
+.dot.on{background:var(--ok)}
+
+nav.tabs{position:sticky;top:0;z-index:5;background:var(--ground);display:flex;gap:4px;border-bottom:2px solid var(--ink);margin-bottom:22px;overflow-x:auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+.tab{font-family:var(--ui);font-weight:700;font-size:15px;padding:12px 18px 11px;border:0;background:transparent;color:var(--ink-3);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .n{font-family:var(--mono);font-size:11px;font-weight:500;margin-left:6px;color:var(--ink-3)}
+
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+
+.panel{background:var(--surface);border:1px solid var(--rule)}
+.panel+.panel{margin-top:22px}
+.panel>h2{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0;padding:13px 16px;border-bottom:1px solid var(--rule-2);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.body{padding:16px;display:flex;flex-direction:column;gap:14px}
+
+label.field{display:flex;flex-direction:column;gap:6px}
+label.field>span,.lbl{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+input[type=text],textarea,select{font-family:var(--ui);font-size:15px;color:var(--ink);background:var(--sunken);border:1px solid var(--rule);border-radius:3px;padding:10px 12px;width:100%}
+textarea{line-height:1.45;min-height:90px;resize:vertical}
+textarea.mono{font-family:var(--mono);font-size:12px;min-height:120px}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.hint{font-size:12px;color:var(--ink-3);line-height:1.45;margin:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+
+.toggle{display:flex;align-items:flex-start;gap:11px;cursor:pointer;padding:10px 12px;border:1px solid var(--rule);border-radius:3px;background:var(--sunken)}
+.toggle input{margin:2px 0 0;width:17px;height:17px;accent-color:var(--accent);flex:none}
+.toggle b{display:block;font-size:14px;font-weight:600}
+.toggle small{display:block;font-size:12px;color:var(--ink-3);line-height:1.35}
+
+.btn{font-family:var(--ui);font-weight:700;font-size:14px;padding:11px 15px;border-radius:3px;border:1.5px solid var(--accent);background:var(--accent);color:var(--btn-ink);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;text-align:center}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.danger{background:transparent;color:var(--bad);border-color:var(--bad)}
+.btn.small{font-size:12.5px;padding:7px 10px}
+.btn:disabled{opacity:.42;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+
+.msg{font-size:13px;font-weight:600;min-height:19px;margin:0;color:var(--ok)}
+
+/* Catalogo */
+.apps{display:flex;flex-direction:column}
+.app{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--rule-2)}
+.app:last-child{border-bottom:0}
+.app b{font-size:15px}
+.app .meta{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);display:block;word-break:break-all}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.chip{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;padding:2px 7px;border-radius:999px;border:1px solid var(--rule);color:var(--ink-3)}
+.chip.ok{border-color:var(--ok);color:var(--ok)}
+.chip.warn{border-color:var(--warn);color:var(--warn)}
+.chip.bad{border-color:var(--bad);color:var(--bad)}
+
+.drop{border:2px dashed var(--rule);border-radius:4px;background:var(--sunken);padding:24px 16px;text-align:center;cursor:pointer}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-2)}
+.drop b{display:block;font-size:15px;font-weight:600}
+.drop small{color:var(--ink-3);font-size:12.5px}
+input[type=file]{display:none}
+
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule)}
+.facts div{background:var(--surface);padding:10px 11px;min-width:0}
+.facts dt{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 3px}
+.facts dd{margin:0;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;word-break:break-all}
+@media (max-width:520px){.facts{grid-template-columns:1fr 1fr}}
+
+.callout{border-left:3px solid var(--accent);background:var(--accent-2);padding:11px 13px;font-size:13.5px;line-height:1.45}
+.callout.warn{border-left-color:var(--warn);background:var(--warn-soft)}
+.callout.bad{border-left-color:var(--bad);background:var(--bad-soft)}
+.callout.ok{border-left-color:var(--ok);background:var(--ok-soft)}
+.callout b{display:block;margin-bottom:2px}
+
+pre.out{font-family:var(--mono);font-size:12px;line-height:1.6;background:var(--sunken);border:1px solid var(--rule);padding:13px;overflow:auto;max-height:320px;margin:0;white-space:pre}
+
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.checks li{font-size:13px;display:flex;gap:8px;line-height:1.4}
+.checks li::before{flex:none;font-family:var(--mono);font-weight:500}
+.checks li.e::before{content:"✕";color:var(--bad)}
+.checks li.w::before{content:"!";color:var(--warn)}
+.checks li.k::before{content:"✓";color:var(--ok)}
+
+.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.steps li{counter-increment:s;display:flex;gap:10px;font-size:13.5px;color:var(--ink-2);line-height:1.45}
+.steps li::before{content:counter(s);font-family:var(--mono);font-size:11px;color:var(--accent);background:var(--accent-2);width:20px;height:20px;border-radius:50%;display:grid;place-items:center;flex:none;margin-top:1px}
+
+details{border-top:1px solid var(--rule-2);padding-top:12px}
+summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--ink-2)}
+details[open] summary{margin-bottom:10px}
+
+/* Niveles y vigencia */
+.seg{display:grid;gap:8px}
+.seg.c3{grid-template-columns:repeat(3,1fr)}
+.seg.c2{grid-template-columns:repeat(2,1fr)}
+.seg button{font-family:var(--ui);font-weight:700;font-size:13px;padding:10px 6px;border:1.5px solid var(--rule);background:var(--surface);color:var(--ink-3);cursor:pointer;border-radius:3px}
+.seg button[aria-pressed="true"]{background:var(--accent-2);border-color:var(--accent);color:var(--accent)}
+.seg.lv button.green[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
+.seg.lv button.yellow[aria-pressed="true"]{background:var(--warn);border-color:var(--warn);color:#fff}
+.seg.lv button.red[aria-pressed="true"]{background:var(--bad);border-color:var(--bad);color:#fff}
+
+.presets{display:flex;flex-wrap:wrap;gap:7px}
+.preset{font-family:var(--ui);font-size:13px;font-weight:600;padding:7px 11px;border-radius:999px;border:1px solid var(--rule);background:var(--surface);color:var(--ink-2);cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.preset:hover{border-color:var(--accent);color:var(--accent)}
+.preset i{width:8px;height:8px;border-radius:50%;flex:none}
+.preset i.green{background:var(--ok)} .preset i.yellow{background:var(--warn)} .preset i.red{background:var(--bad)}
+.preset .x{font-style:normal;color:var(--ink-3);font-size:15px;line-height:1;width:auto;height:auto;border-radius:0;background:none}
+
+/* Televisor: la composicion real del Home */
+.tv{position:relative;width:100%;aspect-ratio:16/9;background:#05080E;border:1px solid var(--rule);overflow:hidden;container-type:inline-size}
+.tv-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:radial-gradient(120% 90% at 70% 30%,#1b3a55 0%,#0a1624 60%,#050a12 100%)}
+.tv-scrim{position:absolute;inset:0;background:#52040B16}
+.tv-ui{position:absolute;inset:0;display:flex;flex-direction:column}
+.tv-head{height:11.4%;display:flex;align-items:center;justify-content:space-between;padding:0 2.4%;border-bottom:1px solid #44658A;flex:none}
+.tv-logo{font-weight:900;color:#fff;letter-spacing:-.02em;font-size:3.1cqw}
+.tv-clock{font-family:var(--mono);color:#E5F2FC;font-size:1.6cqw}
+.tv-body{flex:1;display:flex;padding:2.2% 2.4%;gap:1.4%;min-height:0}
+.tv-menu{width:31%;display:flex;flex-direction:column;gap:1.3%}
+.tv-card{flex:1;background:#1B2A3Bcc;border:1px solid #2E4A66;display:flex;align-items:center;padding:0 4%;gap:5%}
+.tv-card.focus{background:#21506Ccc;border-color:#67D9FF}
+.tv-card i{width:11%;aspect-ratio:1;border-radius:3px;background:#67D9FF33;flex:none}
+.tv-card b{color:#fff;font-size:1.75cqw;font-weight:700;letter-spacing:.02em}
+.tv-right{flex:1;display:flex;align-items:center;padding-right:1.4%}
+.tv-notice{width:100%;background:#DE0E1826;border:1px solid #33587C;border-radius:1.1cqw;padding:2.6% 3%}
+.tv-notice .lv{font-size:1.25cqw;font-weight:700;letter-spacing:.14em}
+.tv-notice h3{margin:.8% 0 0;color:#fff;font-size:2.6cqw;font-weight:900;line-height:1.15}
+.tv-notice p{margin:1% 0 0;color:#C8DAE8;font-size:1.65cqw;line-height:1.45}
+.tv-notice .d{display:block;margin-top:1.4%;color:#8FA8BA;font-size:1.25cqw}
+.tv-foot{height:7.6%;background:#121D2Bb3;display:flex;align-items:center;justify-content:space-between;padding:0 2.4%;color:#E8F4FC;font-size:1.35cqw;font-weight:600;flex:none}
+.tv-note{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin:8px 0 0}
+
+/* Conexion con GitHub */
+.ghbar{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
+.ghpill{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);background:var(--surface);border:1px solid var(--rule);border-radius:999px;padding:7px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;max-width:100%}
+.ghpill b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ghpill.on{border-color:var(--ok);color:var(--ok)}
+.ghpill.off{border-color:var(--warn);color:var(--warn)}
+.modal{position:fixed;inset:0;background:#04080Cc7;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto;z-index:40}
+.modal .sheet{background:var(--surface);border:1px solid var(--rule);width:100%;max-width:580px;margin:auto}
+.bar{height:7px;background:var(--sunken);border:1px solid var(--rule);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;font-size:13px}
+.log li{display:flex;gap:9px;line-height:1.45;color:var(--ink-2)}
+.log li::before{flex:none;font-family:var(--mono);width:13px;text-align:center}
+.log li.run::before{content:"\2022";color:var(--accent)}
+.log li.ok::before{content:"\2713";color:var(--ok)}
+.log li.err::before{content:"\2715";color:var(--bad)}
+.log li.warn::before{content:"!";color:var(--warn)}
+.log li.warn{color:var(--warn)}
+.log li.err{color:var(--bad)}
+.log:empty{display:none}
+
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="shell">
+
+  <header class="top">
+    <div>
+      <h1>Consola OTV Digital</h1>
+      <p class="sub">Aplicaciones, avisos y fondos en un solo lugar. Cada cambio sale validado antes de que lo puedas copiar, así nunca llega un archivo roto a los equipos.</p>
+    </div>
+    <div class="ghbar">
+      <button class="ghpill" id="ghPill" type="button"><span class="dot" id="ghDot"></span><b id="ghPillText">Conectar con GitHub</b></button>
+      <div class="sync"><span class="dot" id="syncDot"></span><span id="syncText">solo este dispositivo</span></div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="apps" aria-selected="true">Aplicaciones<span class="n" id="nApps"></span></button>
+    <button class="tab" role="tab" data-tab="avisos" aria-selected="false">Avisos</button>
+    <button class="tab" role="tab" data-tab="fondos" aria-selected="false">Fondos</button>
+    <button class="tab" role="tab" data-tab="equipos" aria-selected="false">Equipos</button>
+  </nav>
+
+  <!-- ================================================================ APLICACIONES -->
+  <section id="tab-apps" role="tabpanel">
+    <div class="grid">
+      <div>
+        <section class="panel">
+          <h2>Subir una APK</h2>
+          <div class="body">
+            <div class="drop" id="apkDrop" tabindex="0" role="button">
+              <b>Elegí una APK o arrastrala acá</b>
+              <small>Se lee el paquete y la versión de la propia APK, y se calcula su huella.</small>
+            </div>
+            <input type="file" id="apkFile" accept=".apk,application/vnd.android.package-archive">
+
+            <div id="apkResult" hidden>
+              <dl class="facts">
+                <div><dt>Paquete</dt><dd id="fPkg">—</dd></div>
+                <div><dt>Versión</dt><dd id="fVer">—</dd></div>
+                <div><dt>Tamaño</dt><dd id="fSize">—</dd></div>
+              </dl>
+            </div>
+
+            <div id="apkVerdict"></div>
+
+            <div id="apkForm" hidden>
+              <div class="body" style="padding:0">
+                <div class="two">
+                  <label class="field"><span>Paquete</span><input type="text" id="aPkg" spellcheck="false"></label>
+                  <label class="field"><span>Versión</span><input type="text" id="aVer" spellcheck="false"></label>
+                </div>
+                <div class="two">
+                  <label class="field"><span>Nombre visible</span><input type="text" id="aName"></label>
+                  <label class="field"><span>Categoría</span>
+                    <select id="aCat"></select>
+                  </label>
+                </div>
+                <label class="field"><span>Descripción</span><input type="text" id="aDesc"></label>
+                <label class="field"><span>Nombre del archivo en GitHub</span><input type="text" id="aFile" spellcheck="false"></label>
+                <p class="hint" id="aFileHint"></p>
+
+                <label class="toggle"><input type="checkbox" id="aReq"><span><b>Obligatoria</b><small>Si falta, suma al contador del Home.</small></span></label>
+                <label class="toggle"><input type="checkbox" id="aRec"><span><b>Recomendada</b><small>Aparece en la sección de recomendadas mientras no esté instalada.</small></span></label>
+                <label class="toggle"><input type="checkbox" id="aUninst"><span><b>Desinstalar la versión anterior primero</b><small>Obligatorio para volver a una versión más vieja, y para apps que no actualizan bien encima.</small></span></label>
+
+                <div class="row">
+                  <button class="btn" id="aAdd" type="button">Agregar al catálogo</button>
+                  <button class="btn ghost" id="aCancel" type="button">Descartar</button>
+                </div>
+              </div>
+            </div>
+            <p class="msg" id="msgApk"></p>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Catálogo <span id="catCount"></span></h2>
+          <div class="body">
+            <div class="apps" id="catalog"></div>
+            <details>
+              <summary>Actualizar desde el apps.json que está en GitHub</summary>
+              <p class="hint" style="margin:0 0 10px">Si cambiaste el archivo directo en GitHub, pegalo acá para que la consola trabaje sobre la versión real.</p>
+              <textarea class="mono" id="appsBase" spellcheck="false"></textarea>
+              <div class="row" style="margin-top:10px"><button class="btn ghost" id="appsLoad" type="button">Usar este archivo</button></div>
+            </details>
+          </div>
+        </section>
+      </div>
+
+      <div>
+        <section class="panel">
+          <h2>apps.json listo para publicar</h2>
+          <div class="body">
+            <ul class="checks" id="appsChecks"></ul>
+            <pre class="out" id="appsOut"></pre>
+            <div id="apkPending" hidden class="callout ok">
+              <b id="apkPendingName">—</b>
+              <span id="apkPendingText"></span>
+            </div>
+
+            <div class="row">
+              <button class="btn" id="appsPublish" type="button">Publicar en GitHub</button>
+              <button class="btn ghost" id="appsCopy" type="button">Copiar apps.json</button>
+            </div>
+            <div class="bar" id="appsBar" hidden><i></i></div>
+            <ul class="log" id="appsLog"></ul>
+            <p class="msg" id="msgApps"></p>
+
+            <div class="callout warn">
+              <b>El orden importa</b>
+              Primero va la APK y recién después el apps.json. Al revés, los equipos ven la versión nueva antes de que exista el archivo y la descarga falla. Publicando desde acá, ese orden lo respeta la consola sola.
+            </div>
+
+            <details>
+              <summary>Publicarlo a mano, sin conectar la consola</summary>
+              <ol class="steps">
+                <li>Subí la APK a la carpeta de las APK del repositorio, con el nombre indicado. <a id="lnkApkFolder" href="https://github.com/OTVDigital/tv-digital-os-config/upload/main/apps" target="_blank" rel="noopener">Subir archivo</a>. Por la web de GitHub el máximo son 25 MB; arriba de eso, la única forma es publicar desde la consola.</li>
+                <li>Copiá el apps.json de arriba y pegalo en GitHub reemplazando todo. <a id="lnkApps" href="https://github.com/OTVDigital/tv-digital-os-config/edit/main/apps.json" target="_blank" rel="noopener">Editar apps.json</a></li>
+                <li>En hasta 5 minutos los equipos lo toman.</li>
+              </ol>
+            </details>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ AVISOS -->
+  <section id="tab-avisos" role="tabpanel" hidden>
+    <div class="grid">
+      <div>
+        <section class="panel">
+          <h2>Frases guardadas</h2>
+          <div class="body">
+            <div class="presets" id="presets"></div>
+            <div class="row"><button class="btn ghost small" id="presetSave" type="button">Guardar el aviso actual como frase</button></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Aviso</h2>
+          <div class="body">
+            <label class="toggle"><input type="checkbox" id="nOn" checked><span><b>Mostrar el aviso en los equipos</b><small>Aparece en el panel del Home y en el Centro de Avisos.</small></span></label>
+            <div class="row"><button class="btn danger small" id="nOff" type="button">Quitar el aviso de los equipos</button></div>
+
+            <div><span class="lbl" style="display:block;margin-bottom:6px">Nivel</span>
+              <div class="seg c3 lv" id="nLevel">
+                <button class="green" data-v="green" type="button">Información</button>
+                <button class="yellow" data-v="yellow" type="button">Atención</button>
+                <button class="red" data-v="red" type="button">Incidencia</button>
+              </div>
+            </div>
+
+            <div><span class="lbl" style="display:block;margin-bottom:6px">Vigencia</span>
+              <div class="seg c2" id="nDur">
+                <button data-v="6" type="button">6 horas</button>
+                <button data-v="24" type="button">24 horas</button>
+                <button data-v="72" type="button">3 días</button>
+                <button data-v="0" type="button">Hasta que lo saque</button>
+              </div>
+              <p class="hint" id="nDurHint" style="margin-top:7px"></p>
+            </div>
+
+            <label class="field"><span>Título</span><input type="text" id="nTitle" maxlength="42"></label>
+            <label class="field"><span>Mensaje</span><textarea id="nText" maxlength="420"></textarea></label>
+
+            <label class="toggle"><input type="checkbox" id="nOnce"><span><b>Popup una sola vez por equipo</b><small>El panel del Home queda igual; esto evita que el popup insista cada vez que el cliente vuelve.</small></span></label>
+
+            <details>
+              <summary>Estado del servidor e identificador</summary>
+              <div class="body" style="padding:0">
+                <label class="toggle"><input type="checkbox" id="sOnline" checked><span><b>Servicio operativo</b><small>Indicador del pie del Home.</small></span></label>
+                <label class="field"><span>Texto del estado</span><input type="text" id="sMsg"></label>
+                <label class="field"><span>Identificador del aviso</span><input type="text" id="nId" spellcheck="false"></label>
+              </div>
+            </details>
+          </div>
+        </section>
+      </div>
+
+      <div>
+        <section class="panel">
+          <h2>Así se ve en el televisor</h2>
+          <div class="body" id="tvSlotAvisos"></div>
+        </section>
+
+        <section class="panel">
+          <h2>status.json listo para publicar</h2>
+          <div class="body">
+            <ul class="checks" id="statusChecks"></ul>
+            <pre class="out" id="statusOut"></pre>
+            <div class="row">
+              <button class="btn" id="statusPublish" type="button">Publicar el aviso en GitHub</button>
+              <button class="btn ghost" id="statusCopy" type="button">Copiar status.json</button>
+              <a class="btn ghost" id="lnkStatus" href="https://github.com/OTVDigital/tv-digital-os-config/edit/main/status.json" target="_blank" rel="noopener">Editar a mano</a>
+            </div>
+            <ul class="log" id="statusLog"></ul>
+            <p class="msg" id="msgStatus"></p>
+            <details>
+              <summary>Campos del archivo que se preservan</summary>
+              <textarea class="mono" id="statusBase" spellcheck="false"></textarea>
+              <div class="row" style="margin-top:10px"><button class="btn ghost" id="statusLoad" type="button">Usar como base</button></div>
+            </details>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ FONDOS -->
+  <section id="tab-fondos" role="tabpanel" hidden>
+    <div class="grid">
+      <div>
+        <section class="panel">
+          <h2>Imagen</h2>
+          <div class="body">
+            <div class="drop" id="imgDrop" tabindex="0" role="button">
+              <b>Elegí una imagen o arrastrala acá</b>
+              <small>Se recorta y ajusta a 1280 × 720, el tamaño exacto del equipo.</small>
+            </div>
+            <input type="file" id="imgFile" accept="image/*">
+            <dl class="facts">
+              <div><dt>Original</dt><dd id="iOrig">—</dd></div>
+              <div><dt>Ajustada</dt><dd id="iOpt">—</dd></div>
+              <div><dt>Resolución</dt><dd id="iRes">1280×720</dd></div>
+            </dl>
+            <label class="field"><span>Nombre del archivo</span><input type="text" id="iName" spellcheck="false"></label>
+            <div class="row">
+              <button class="btn" id="iDownload" type="button" disabled>Descargar imagen ajustada</button>
+              <button class="btn ghost" id="iReset" type="button">Volver al fondo por defecto</button>
+            </div>
+            <p class="msg" id="msgImg"></p>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Así se ve en el televisor</h2>
+          <div class="body" id="tvSlotFondos"></div>
+        </section>
+      </div>
+
+      <div>
+        <section class="panel">
+          <h2>config.json listo para publicar</h2>
+          <div class="body">
+            <ul class="checks" id="configChecks"></ul>
+            <pre class="out" id="configOut"></pre>
+            <div class="row">
+              <button class="btn" id="configPublish" type="button">Publicar el fondo en GitHub</button>
+              <button class="btn ghost" id="configCopy" type="button">Copiar config.json</button>
+            </div>
+            <div class="bar" id="configBar" hidden><i></i></div>
+            <ul class="log" id="configLog"></ul>
+            <p class="msg" id="msgConfig"></p>
+            <details>
+              <summary>Publicarlo a mano, sin conectar la consola</summary>
+              <ol class="steps">
+                <li>Descargá la imagen ajustada y subila a <code>backgrounds/</code>. <a id="lnkBg" href="https://github.com/OTVDigital/tv-digital-os-config/upload/main/backgrounds" target="_blank" rel="noopener">Subir imagen</a></li>
+                <li>Copiá el config.json y pegalo reemplazando todo el archivo. <a id="lnkConfig" href="https://github.com/OTVDigital/tv-digital-os-config/edit/main/config.json" target="_blank" rel="noopener">Editar config</a></li>
+              </ol>
+            </details>
+            <details>
+              <summary>Campos del archivo que se preservan</summary>
+              <textarea class="mono" id="configBase" spellcheck="false"></textarea>
+              <div class="row" style="margin-top:10px"><button class="btn ghost" id="configLoad" type="button">Usar como base</button></div>
+            </details>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================ EQUIPOS -->
+  <section id="tab-equipos" role="tabpanel" hidden>
+    <div class="grid">
+      <div>
+        <section class="panel">
+          <h2>Buscar un equipo</h2>
+          <div class="body">
+            <p class="hint">El código aparece en el equipo, en Ajustes → Equipo OTV. Son 6 letras y números, por ejemplo <code>APE-04N</code>.</p>
+            <div class="row">
+              <input type="text" id="eqCode" placeholder="APE-04N" spellcheck="false" autocomplete="off" style="flex:1;min-width:150px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.08em">
+              <button class="btn" id="eqOpen" type="button">Abrir</button>
+            </div>
+            <p class="msg" id="msgEqOpen"></p>
+            <div class="presets" id="eqRecents"></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Mis equipos <span id="eqDirCount"></span></h2>
+          <div class="body">
+            <div id="eqLock" class="body" style="padding:0">
+              <p class="hint" id="eqLockHint">Los datos de tus clientes se guardan cifrados en GitHub. Poné la clave para verlos.</p>
+              <label class="field"><span>Clave de los datos de clientes</span><input type="password" id="eqKey" autocomplete="off"></label>
+              <label class="field" id="eqKey2Wrap" hidden><span>Repetí la clave</span><input type="password" id="eqKey2" autocomplete="off"></label>
+              <label class="toggle"><input type="checkbox" id="eqKeyRemember" checked><span><b>Recordarla en este dispositivo</b><small>Igual que el token: queda guardada en este navegador. En una computadora compartida, desmarcalo.</small></span></label>
+              <div class="row"><button class="btn" id="eqUnlock" type="button">Ver mis equipos</button></div>
+            </div>
+            <div id="eqDir" class="body" style="padding:0" hidden>
+              <input type="text" id="eqFilter" placeholder="Buscar por cliente, nota o código" autocomplete="off">
+              <div class="apps" id="eqDirList"></div>
+              <div class="row">
+                <button class="btn ghost small" id="eqDirReload" type="button">Actualizar la lista</button>
+                <button class="btn ghost small" id="eqLockAgain" type="button">Olvidar la clave</button>
+              </div>
+            </div>
+            <p class="msg" id="msgEqDir"></p>
+          </div>
+        </section>
+
+        <div id="eqEditor" hidden>
+          <section class="panel">
+            <h2>Equipo <span id="eqTitle"></span></h2>
+            <div class="body">
+              <label class="field"><span>Cliente</span><input type="text" id="eqName" maxlength="80" autocomplete="off"></label>
+              <label class="field"><span>Nota (teléfono, dirección, lo que te sirva)</span><input type="text" id="eqNote" maxlength="160" autocomplete="off"></label>
+              <div class="row"><button class="btn ghost" id="eqNameSave" type="button">Guardar datos del cliente</button></div>
+              <p class="msg" id="msgEqName"></p>
+              <div class="callout"><b>Privado y público</b>Cliente y nota se guardan cifrados con tu clave: en GitHub nadie más puede leerlos. El aviso y las apps de abajo, en cambio, se publican a la vista: ahí no pongas datos del cliente.</div>
+              <p class="hint" id="eqState"></p>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2>Aviso solo para este equipo</h2>
+            <div class="body">
+              <label class="toggle"><input type="checkbox" id="eqNOn"><span><b>Mostrar un aviso propio</b><small>Mientras esté vigente, en este equipo reemplaza al aviso general.</small></span></label>
+              <div class="body" id="eqNForm" style="padding:0">
+                <div><span class="lbl" style="display:block;margin-bottom:6px">Nivel</span>
+                  <div class="seg c3 lv" id="eqNLevel">
+                    <button class="green" data-v="green" type="button">Información</button>
+                    <button class="yellow" data-v="yellow" type="button">Atención</button>
+                    <button class="red" data-v="red" type="button">Incidencia</button>
+                  </div>
+                </div>
+                <div><span class="lbl" style="display:block;margin-bottom:6px">Vigencia</span>
+                  <div class="seg c2" id="eqNDur">
+                    <button data-v="6" type="button">6 horas</button>
+                    <button data-v="24" type="button">24 horas</button>
+                    <button data-v="72" type="button">3 días</button>
+                    <button data-v="0" type="button">Hasta que lo saque</button>
+                  </div>
+                  <p class="hint" id="eqNDurHint" style="margin-top:7px"></p>
+                </div>
+                <label class="field"><span>Título</span><input type="text" id="eqNTitle" maxlength="42"></label>
+                <label class="field"><span>Mensaje</span><textarea id="eqNText" maxlength="420"></textarea></label>
+                <label class="toggle"><input type="checkbox" id="eqNOnce"><span><b>Popup una sola vez</b><small>El panel del Home queda igual; esto evita que el popup insista.</small></span></label>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2>Apps solo para este equipo</h2>
+            <div class="body">
+              <p class="hint" id="eqAppsEmpty">Usa el catálogo general, sin cambios.</p>
+              <div class="apps" id="eqApps"></div>
+
+              <div><span class="lbl" style="display:block;margin-bottom:6px">Dar de baja una app del catálogo solo en este equipo</span>
+                <div class="row">
+                  <select id="eqRemoveSel" style="flex:1;min-width:160px"></select>
+                  <button class="btn ghost" id="eqRemoveAdd" type="button">Dar de baja acá</button>
+                </div>
+              </div>
+
+              <details id="eqApkBox">
+                <summary>Subir una APK solo para este equipo</summary>
+                <div class="body" style="padding:0">
+                  <p class="hint">Sirve para darle una app que el resto no tiene, o para probar otra versión (incluso de OTV Digital OS) en un solo equipo.</p>
+                  <div class="drop" id="eqApkDrop" tabindex="0" role="button">
+                    <b>Elegí una APK o arrastrala acá</b>
+                    <small>Se lee el paquete y la versión, y se calcula su huella.</small>
+                  </div>
+                  <input type="file" id="eqApkFile" accept=".apk,application/vnd.android.package-archive">
+                  <div id="eqApkForm" hidden>
+                    <div class="body" style="padding:0">
+                      <dl class="facts">
+                        <div><dt>Paquete</dt><dd id="eqFPkg">—</dd></div>
+                        <div><dt>Versión</dt><dd id="eqFVer">—</dd></div>
+                        <div><dt>Tamaño</dt><dd id="eqFSize">—</dd></div>
+                      </dl>
+                      <div class="two">
+                        <label class="field"><span>Nombre visible</span><input type="text" id="eqAName"></label>
+                        <label class="field"><span>Categoría</span><select id="eqACat"></select></label>
+                      </div>
+                      <label class="field"><span>Nombre del archivo en GitHub</span><input type="text" id="eqAFile" spellcheck="false"></label>
+                      <label class="toggle"><input type="checkbox" id="eqAUninst"><span><b>Desinstalar la versión anterior primero</b><small>Obligatorio para volver a una versión más vieja.</small></span></label>
+                      <div class="row">
+                        <button class="btn" id="eqAAdd" type="button">Agregar a este equipo</button>
+                        <button class="btn ghost" id="eqACancel" type="button">Descartar</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </details>
+              <p class="msg" id="msgEqApps"></p>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div>
+        <section class="panel" id="eqOutPanel" hidden>
+          <h2 id="eqOutTitle">Archivo del equipo</h2>
+          <div class="body">
+            <ul class="checks" id="eqChecks"></ul>
+            <pre class="out" id="eqOut"></pre>
+            <div id="eqPending" hidden class="callout ok"><b id="eqPendingName">—</b>Se sube a GitHub al publicar, antes que el archivo del equipo.</div>
+            <div class="row">
+              <button class="btn" id="eqPublish" type="button">Publicar en GitHub</button>
+              <button class="btn ghost" id="eqCopy" type="button">Copiar</button>
+              <button class="btn danger small" id="eqDelete" type="button">Borrar lo propio de este equipo</button>
+            </div>
+            <div class="bar" id="eqBar" hidden><i></i></div>
+            <ul class="log" id="eqLog"></ul>
+            <p class="msg" id="msgEq"></p>
+            <div class="callout">
+              <b>Cómo lo toma el equipo</b>
+              Necesita OTV Digital OS 1.0.12 o posterior. En hasta 5 minutos lee su archivo; si no existe, usa solo el aviso y el catálogo generales. Borrar el archivo lo devuelve a lo general.
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="modal" id="ghPanel" hidden>
+  <section class="sheet panel">
+    <h2>Conexión con GitHub <button class="btn ghost small" id="ghClose" type="button">Cerrar</button></h2>
+    <div class="body">
+
+      <div class="callout" id="ghBlockedNote" hidden>
+        <b>Esta copia no puede publicar</b>
+        Está abierta dentro de Claude, que bloquea las conexiones salientes. La misma consola publicada en tu GitHub Pages sí publica sola. Acá sigue funcionando todo lo demás: leer la APK, validar y copiar.
+      </div>
+
+      <div class="two">
+        <label class="field"><span>Cuenta o grupo</span><input type="text" id="ghOwner" spellcheck="false"></label>
+        <label class="field"><span>Repositorio</span><input type="text" id="ghRepo" spellcheck="false"></label>
+      </div>
+      <div class="two">
+        <label class="field"><span>Rama</span><input type="text" id="ghBranch" spellcheck="false"></label>
+        <label class="field"><span>Carpeta de las APK</span><input type="text" id="ghFolder" spellcheck="false"></label>
+      </div>
+
+      <label class="field"><span>Token de acceso</span><input type="password" id="ghToken" spellcheck="false" autocomplete="off"></label>
+      <label class="toggle"><input type="checkbox" id="ghRemember" checked><span><b>Recordarlo en este dispositivo</b><small>Queda guardado en este navegador, no se envía a ningún otro lado ni se sincroniza con la otra copia de la consola. En una computadora compartida, desmarcalo.</small></span></label>
+
+      <div class="row">
+        <button class="btn" id="ghTest" type="button">Probar la conexión</button>
+        <button class="btn ghost" id="ghPull" type="button">Traer los archivos de GitHub</button>
+        <button class="btn danger small" id="ghForget" type="button">Olvidar el token</button>
+      </div>
+      <ul class="log" id="ghLog"></ul>
+      <p class="msg" id="msgGh"></p>
+
+      <details>
+        <summary>Cómo sacar el token (una sola vez)</summary>
+        <ol class="steps">
+          <li>Entrá a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a> con tu cuenta.</li>
+          <li>Ponele un nombre (por ejemplo <code>consola-otv</code>) y elegí cuándo vence. Cuando vence deja de andar y sacás uno nuevo igual que este.</li>
+          <li>En <b>Repository access</b> elegí <b>Only select repositories</b> y marcá <code>tv-digital-os-config</code>. Así el token no toca ningún otro repositorio tuyo.</li>
+          <li>En <b>Permissions → Repository permissions</b> buscá <b>Contents</b> y ponelo en <b>Read and write</b>. Es el único permiso que hace falta: alcanza para los archivos y para las publicaciones donde van las APK.</li>
+          <li>Generálo, copialo y pegalo acá arriba. GitHub lo muestra una sola vez.</li>
+        </ol>
+        <p class="hint" style="margin-top:10px">Si la cuenta es un grupo (organización) y GitHub no te deja, el grupo tiene que permitir los tokens de grano fino en sus opciones. La otra salida es un token clásico con el permiso <code>repo</code>, que también sirve pero alcanza a todos tus repositorios.</p>
+      </details>
+
+    </div>
+  </section>
+</div>
+
+<!-- El televisor se mueve entre las pestañas de Avisos y Fondos. -->
+<div id="tvHome" hidden>
+  <div class="tv" id="tv">
+    <img class="tv-bg" id="tvBg" alt="">
+    <div class="tv-scrim"></div>
+    <div class="tv-ui">
+      <div class="tv-head"><span class="tv-logo">OTV DIGITAL OS</span><span class="tv-clock" id="tvClock"></span></div>
+      <div class="tv-body">
+        <div class="tv-menu">
+          <div class="tv-card focus"><i></i><b>TV DIGITAL</b></div>
+          <div class="tv-card"><i></i><b>SERIES</b></div>
+          <div class="tv-card"><i></i><b>VIDEOS</b></div>
+          <div class="tv-card"><i></i><b>APLICACIONES</b></div>
+          <div class="tv-card"><i></i><b>AVISOS</b></div>
+          <div class="tv-card"><i></i><b>AJUSTES</b></div>
+        </div>
+        <div class="tv-right">
+          <div class="tv-notice" id="tvNotice">
+            <span class="lv" id="tvLv"></span>
+            <h3 id="tvTitle"></h3>
+            <p id="tvText"></p>
+            <span class="d" id="tvDate"></span>
+          </div>
+        </div>
+      </div>
+      <div class="tv-foot"><span>● SERVIDOR OPERATIVO</span><span>⚡ RENDIMIENTO · 12 ms</span><span>OTV DIGITAL OS · v1.0.1</span></div>
+    </div>
+  </div>
+  <p class="tv-note" id="tvNote"></p>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var $ = function (id) { return document.getElementById(id); };
+  var db = null;
+
+  var GH_DEFAULT = { owner: "OTVDigital", repo: "tv-digital-os-config", branch: "main", folder: "apps" };
+  var gh = { owner: GH_DEFAULT.owner, repo: GH_DEFAULT.repo, branch: GH_DEFAULT.branch, folder: GH_DEFAULT.folder };
+  var ghToken = "";
+  var ghBlocked = false;
+  var ghShas = {};
+
+  var BLOQUEADA = "Esta copia de la consola no puede conectarse a GitHub: est\u00e1 abierta dentro de Claude, que bloquea las conexiones salientes. Us\u00e1 la copia publicada en tu GitHub Pages.";
+
+  function repoUrl() { return "https://github.com/" + gh.owner + "/" + gh.repo; }
+  function apkBase() { return rawBase() + gh.folder + "/"; }
+
+  /* Ruta dentro del repositorio de una APK que administra la consola, o
+     vacio si la direccion apunta a cualquier otro lado. */
+  function rutaDeApk(url) {
+    if (typeof url !== "string" || !url) return "";
+
+    /*
+     * GitHub sirve el mismo archivo por varias direcciones. Todas valen
+     * igual para el equipo, asi que todas tienen que reconocerse: si no,
+     * el control previo daria por perdida una APK que esta subida.
+     */
+    var formas = [
+      apkBase(),
+      repoUrl() + "/raw/refs/heads/" + gh.branch + "/" + gh.folder + "/",
+      repoUrl() + "/raw/" + gh.branch + "/" + gh.folder + "/",
+      repoUrl() + "/blob/" + gh.branch + "/" + gh.folder + "/"
+    ];
+
+    for (var i = 0; i < formas.length; i++) {
+      if (url.indexOf(formas[i]) === 0) {
+        return gh.folder + "/" + decodeURIComponent(url.slice(formas[i].length));
+      }
+    }
+    return "";
+  }
+
+  /* Direcciones que viven en este repositorio, esten en la carpeta de
+     las APK o en cualquier otro rincon. */
+  function esDeEsteRepo(url) {
+    if (typeof url !== "string" || !url) return false;
+    return url.indexOf("https://raw.githubusercontent.com/" + gh.owner + "/" + gh.repo + "/") === 0 ||
+           url.indexOf(repoUrl() + "/") === 0;
+  }
+  function rawBase() { return "https://raw.githubusercontent.com/" + gh.owner + "/" + gh.repo + "/" + gh.branch + "/"; }
+
+  /* ============================================================ BASES */
+
+  var APPS_DEFAULT = {"version":1,"apps":[
+    {"id":"tv","name":"TV Digital","description":"Canales en vivo","package":"com.example.tvplusdos","version":"1.9","apk":"","category":"tv","recommended":false,"required":true},
+    {"id":"series","name":"Series","description":"Películas y series","package":"com.android.mgstxNF","version":"6.72.1","apk":"","category":"series","recommended":false,"required":true},
+    {"id":"videos","name":"SmartTube","description":"Videos en línea","package":"org.smarttube.stable","version":"31.94","apk":"","category":"videos","recommended":false,"required":true},
+    {"id":"youtube","name":"YouTube","description":"Videos y entretenimiento","package":"com.google.android.youtube.tv","version":"2.05.03","apk":"https://github.com/OTVDigital/tv-digital-os-config/raw/refs/heads/main/apps/youtube-tv-v2.05.03.apk","category":"videos","recommended":true,"required":false}
+  ]};
+
+  var STATUS_DEFAULT = {"apps":[
+    {"package":"com.example.tvplusdos","name":"TV Digital","version":"1.7","description":"Televisión en vivo con canales nacionales, deportes, noticias y entretenimiento.","size":"42 MB","updated":"17/07/2026","recommended":true},
+    {"package":"com.android.mgstxNF","name":"Series y Películas","version":"6.72.1","description":"Aplicación de entretenimiento para disfrutar series y películas.","size":"38 MB","updated":"17/07/2026","recommended":true},
+    {"package":"org.smarttube.stable","name":"Videos en Línea","version":"31.94","description":"Reproductor optimizado para acceder a videos en línea desde el TV Box.","size":"25 MB","updated":"17/07/2026","recommended":false}
+  ]};
+
+  var CONFIG_DEFAULT = {"system":{"launcher_version":"0.0.2","maintenance":false,"show_store":true,"show_tools":false,"theme":"dark","background":"default.png"}};
+
+  var state = {
+    apps: clone(APPS_DEFAULT),
+    statusBase: clone(STATUS_DEFAULT),
+    configBase: clone(CONFIG_DEFAULT),
+    pending: null, upload: null, keepUntil: "",
+    level: "red", hours: 0, hoursPicked: false,
+    presets: [], imgBlob: null, imgUrl: ""
+  };
+
+  /* ============================================================ UTILIDADES */
+
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function pad(n) { return n < 10 ? "0" + n : String(n); }
+  function stamp(d) {
+    return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear() + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+  function peso(b) {
+    if (!b) return "—";
+    var kb = b / 1024;
+    return kb < 1024 ? Math.round(kb) + " KB" : (kb / 1024).toFixed(1) + " MB";
+  }
+  function slug(t) {
+    return String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+      .replace(/[^a-z0-9.]+/g, "-").replace(/^-+|-+$/g, "") || "app";
+  }
+  function flash(el, text, bad) {
+    el.textContent = text;
+    el.style.color = bad ? "var(--bad)" : "var(--ok)";
+    setTimeout(function () { if (el.textContent === text) el.textContent = ""; }, 5000);
+  }
+  function local(key, value) {
+    try {
+      if (value === undefined) { var v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) { /* almacenamiento no disponible */ }
+    return null;
+  }
+  function persist(name, obj) {
+    local("otv_" + name, obj);
+    if (db) db.doc("config/" + name).set({ json: JSON.stringify(obj) }).catch(function () {});
+  }
+  function copyText(text, msgEl) {
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      flash(msgEl, ok ? "Copiado. Pegalo en GitHub reemplazando todo el archivo." : "No se pudo copiar. Seleccioná el texto y copialo a mano.", !ok);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        flash(msgEl, "Copiado. Pegalo en GitHub reemplazando todo el archivo.");
+      }, fallback);
+    } else { fallback(); }
+  }
+  function renderChecks(ul, result) {
+    ul.textContent = "";
+    if (!result.errors.length && !result.warnings.length) {
+      var li = document.createElement("li"); li.className = "k"; li.textContent = "Archivo válido. Se puede publicar."; ul.appendChild(li);
+      return;
+    }
+    result.errors.forEach(function (t) { var li = document.createElement("li"); li.className = "e"; li.textContent = t; ul.appendChild(li); });
+    if (!result.errors.length) { var ok = document.createElement("li"); ok.className = "k"; ok.textContent = "Sin errores. Se puede publicar."; ul.appendChild(ok); }
+    result.warnings.forEach(function (t) { var li = document.createElement("li"); li.className = "w"; li.textContent = t; ul.appendChild(li); });
+  }
+
+  /* ============================================================ VALIDACION
+     Mismas reglas que scripts/validar_catalogo.py del repositorio. */
+
+  /*
+   * El paquete del propio launcher. Todo lo que lo deje fuera de servicio
+   * se bloquea, porque el equipo se queda sin pantalla de inicio y hay
+   * que ir a buscarlo.
+   */
+  var PAQUETE_LAUNCHER = "com.tvdigital.os";
+
+  var RE_VERSION = /^\d+(\.\d+)*$/;
+  var RE_PKG = /^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/;
+  var RE_HASH = /^[0-9a-fA-F]{64}$/;
+
+  function validateApps(d) {
+    var errors = [], warnings = [];
+    if (!d || typeof d !== "object" || !Array.isArray(d.apps)) {
+      errors.push("Falta la lista de aplicaciones.");
+      return { errors: errors, warnings: warnings };
+    }
+    var ids = {}, pkgs = {};
+    d.apps.forEach(function (a, i) {
+      var tag = (a && a.name) || ("app #" + (i + 1));
+      ["id", "name", "package", "version"].forEach(function (f) {
+        if (typeof a[f] !== "string" || !a[f].trim()) errors.push(tag + ": falta " + f + ".");
+      });
+      ["recommended", "required", "remove", "uninstall_first"].forEach(function (f) {
+        if (f in a && typeof a[f] !== "boolean") errors.push(tag + ": " + f + " tiene que ser verdadero o falso.");
+      });
+      if (a.id) { if (ids[a.id]) errors.push(tag + ": el id «" + a.id + "» está repetido."); ids[a.id] = 1; }
+      if (a.package) {
+        if (!RE_PKG.test(a.package)) errors.push(tag + ": «" + a.package + "» no es un nombre de paquete válido.");
+        if (pkgs[a.package]) errors.push(tag + ": el paquete «" + a.package + "» está repetido.");
+        pkgs[a.package] = 1;
+      }
+      if (a.version && !RE_VERSION.test(a.version)) errors.push(tag + ": la versión «" + a.version + "» tiene que ser solo números y puntos.");
+      if (typeof a.apk === "string" && a.apk.trim() && !/^https?:\/\//.test(a.apk)) errors.push(tag + ": el apk no es una URL.");
+      if (!a.apk && !a.remove) warnings.push(tag + ": sin APK, no se puede instalar ni actualizar.");
+      ["sha256", "signer_sha256"].forEach(function (f) {
+        if (a[f] && !RE_HASH.test(String(a[f]).trim())) errors.push(tag + ": " + f + " tiene que tener 64 caracteres hexadecimales.");
+      });
+      if (a.apk && !a.sha256) warnings.push(tag + ": sin huella sha256, se instala sin verificar integridad.");
+      if (a.remove && a.uninstall_first) warnings.push(tag + ": tiene «dar de baja» y «desinstalar primero» a la vez; gana dar de baja.");
+
+      /*
+       * Ultima barrera, por si el archivo se pego a mano. Los botones ya
+       * no dejan llegar hasta aca, pero el texto se puede editar.
+       */
+      if (a.package === PAQUETE_LAUNCHER) {
+        if (a.remove) {
+          errors.push(tag + ": es el propio OTV Digital OS. Darlo de baja dejaría a todos los equipos sin pantalla de inicio, y habría que ir a buscar cada uno.");
+        }
+        if (a.uninstall_first) {
+          errors.push(tag + ": es el propio OTV Digital OS. No puede desinstalarse a sí mismo para actualizarse; se instala encima y listo.");
+        }
+      }
+    });
+    return { errors: errors, warnings: warnings };
+  }
+
+  function validateStatus(d) {
+    var errors = [], warnings = [];
+    if (d.notice_enabled && !String(d.notice_text || "").trim()) errors.push("El aviso está activo pero no tiene mensaje.");
+    if (d.notice_enabled && !String(d.notice_id || "").trim()) warnings.push("Sin identificador, los equipos no distinguen un aviso nuevo de uno viejo.");
+    return { errors: errors, warnings: warnings };
+  }
+
+  /* ============================================================ LECTURA DE APK
+     Una APK es un ZIP. AndroidManifest.xml viene compilado en el formato
+     binario de Android: se recorre el pool de textos y el elemento raiz
+     <manifest> para sacar paquete y version. */
+
+  function sha256Hex(buf) {
+    return crypto.subtle.digest("SHA-256", buf).then(function (h) {
+      return Array.prototype.map.call(new Uint8Array(h), function (b) { return (b < 16 ? "0" : "") + b.toString(16); }).join("");
+    });
+  }
+
+  function readStringPool(dv, start) {
+    var headerSize = dv.getUint16(start + 2, true);
+    var count = dv.getUint32(start + 8, true);
+    var flags = dv.getUint32(start + 16, true);
+    var stringsStart = dv.getUint32(start + 20, true);
+    var utf8 = (flags & 0x100) !== 0;
+    var out = [];
+    for (var i = 0; i < count; i++) {
+      var p = start + stringsStart + dv.getUint32(start + headerSize + i * 4, true);
+      if (utf8) {
+        p += (dv.getUint8(p) & 0x80) ? 2 : 1;
+        var len = dv.getUint8(p);
+        if (len & 0x80) { len = ((len & 0x7f) << 8) | dv.getUint8(p + 1); p += 2; } else { p += 1; }
+        out.push(new TextDecoder("utf-8").decode(new Uint8Array(dv.buffer, p, len)));
+      } else {
+        var n = dv.getUint16(p, true);
+        if (n & 0x8000) { n = ((n & 0x7fff) << 16) | dv.getUint16(p + 2, true); p += 4; } else { p += 2; }
+        var s = "";
+        for (var j = 0; j < n; j++) s += String.fromCharCode(dv.getUint16(p + j * 2, true));
+        out.push(s);
+      }
+    }
+    return out;
+  }
+
+  function parseManifest(buf) {
+    var dv = new DataView(buf);
+    var pos = dv.getUint16(2, true);
+    var strings = [], resIds = [];
+    var ATTR_VERSION_CODE = 0x0101021b, ATTR_VERSION_NAME = 0x0101021c;
+    while (pos + 8 <= dv.byteLength) {
+      var type = dv.getUint16(pos, true), hsize = dv.getUint16(pos + 2, true), size = dv.getUint32(pos + 4, true);
+      if (!size) break;
+      if (type === 0x0001) {
+        strings = readStringPool(dv, pos);
+      } else if (type === 0x0180) {
+        for (var r = 0; r < (size - hsize) / 4; r++) resIds.push(dv.getUint32(pos + hsize + r * 4, true));
+      } else if (type === 0x0102) {
+        var ext = pos + hsize;
+        if (strings[dv.getUint32(ext + 4, true)] === "manifest") {
+          var aStart = dv.getUint16(ext + 8, true), aSize = dv.getUint16(ext + 10, true), aCount = dv.getUint16(ext + 12, true);
+          var res = { pkg: "", versionName: "", versionCode: "" };
+          for (var k = 0; k < aCount; k++) {
+            var a = ext + aStart + k * aSize;
+            var nameIdx = dv.getUint32(a + 4, true);
+            var raw = dv.getUint32(a + 8, true);
+            var dataType = dv.getUint8(a + 15);
+            var data = dv.getUint32(a + 16, true);
+            var name = strings[nameIdx] || "";
+            var rid = resIds[nameIdx];
+            var value = raw !== 0xFFFFFFFF ? strings[raw]
+              : dataType === 0x03 ? strings[data]
+              : (dataType === 0x10 || dataType === 0x11) ? String(data >>> 0)
+              : null;
+            if (name === "package") res.pkg = value || "";
+            else if (rid === ATTR_VERSION_CODE || name === "versionCode") res.versionCode = value || "";
+            else if (rid === ATTR_VERSION_NAME || name === "versionName") res.versionName = value || "";
+          }
+          return res;
+        }
+      }
+      pos += size;
+    }
+    return null;
+  }
+
+  function readApk(file) {
+    return file.arrayBuffer().then(function (buf) {
+      var hashP = sha256Hex(buf);
+      var manP = (typeof JSZip === "undefined")
+        ? Promise.resolve(null)
+        : JSZip.loadAsync(buf).then(function (zip) {
+            var entry = zip.file("AndroidManifest.xml");
+            return entry ? entry.async("arraybuffer").then(parseManifest) : null;
+          }).catch(function () { return null; });
+      return Promise.all([hashP, manP]).then(function (r) {
+        return { sha256: r[0], manifest: r[1], size: file.size, fileName: file.name, file: file };
+      });
+    });
+  }
+
+  /* ============================================================ APLICACIONES */
+
+  function categories() {
+    var seen = {};
+    var list = [];
+    state.apps.apps.forEach(function (a) { if (a.category && !seen[a.category]) { seen[a.category] = 1; list.push(a.category); } });
+    return list;
+  }
+
+  function renderCatalog() {
+    var box = $("catalog");
+    box.textContent = "";
+    var apps = state.apps.apps;
+    $("catCount").textContent = apps.length + (apps.length === 1 ? " app" : " apps");
+    $("nApps").textContent = String(apps.length);
+
+    apps.forEach(function (a, i) {
+      var row = document.createElement("div");
+      row.className = "app";
+
+      var info = document.createElement("div");
+      var b = document.createElement("b"); b.textContent = a.name; info.appendChild(b);
+      var meta = document.createElement("span"); meta.className = "meta";
+      meta.textContent = a.package + " · v" + a.version + " · " + (a.category || "sin categoría");
+      info.appendChild(meta);
+
+      var chips = document.createElement("div"); chips.className = "chips";
+      function chip(t, c) { var s = document.createElement("span"); s.className = "chip " + (c || ""); s.textContent = t; chips.appendChild(s); }
+      var esLauncher = a.package === PAQUETE_LAUNCHER;
+      if (esLauncher) chip("el sistema", "ok");
+      if (a.remove) chip("DADA DE BAJA", "bad");
+      if (a.required) chip("obligatoria");
+      if (a.recommended) chip("recomendada");
+      if (a.uninstall_first) chip("desinstala primero", "warn");
+      var apkOk = typeof a.apk === "string" && /^https?:\/\//.test(a.apk);
+      if (!a.apk) chip("sin APK", "warn");
+      else if (!apkOk) chip("dirección mal puesta", "bad");
+      else chip("con APK", "ok");
+      if (a.sha256) chip("huella", "ok");
+      info.appendChild(chips);
+      row.appendChild(info);
+
+      var actions = document.createElement("div");
+      actions.className = "row";
+      var toggle = document.createElement("button");
+      toggle.className = "btn small " + (a.remove ? "ghost" : "danger");
+      toggle.type = "button";
+      toggle.textContent = a.remove ? "Reactivar" : "Dar de baja";
+      toggle.addEventListener("click", function () {
+        if (a.remove) { delete a.remove; } else { a.remove = true; delete a.uninstall_first; }
+        commitApps("«" + a.name + "» " + (a.remove ? "dada de baja." : "reactivada."));
+      });
+      /*
+       * Al launcher no se le ofrece «dar de baja». La forma mas segura de
+       * evitar el error es que el boton no exista.
+       */
+      if (!esLauncher) actions.appendChild(toggle);
+
+      if (!apkOk && !a.remove) {
+        var arreglar = document.createElement("button");
+        arreglar.className = "btn ghost small";
+        arreglar.type = "button";
+        arreglar.textContent = a.apk ? "Corregir dirección" : "Poner dirección";
+        arreglar.addEventListener("click", function () { editApkUrl(a); });
+        actions.appendChild(arreglar);
+      }
+
+      row.appendChild(actions);
+      box.appendChild(row);
+    });
+  }
+
+  /*
+   * La direccion de descarga es el unico dato del catalogo que no sale
+   * de la propia APK, asi que es el unico que puede quedar mal sin que
+   * nada lo corrija. Se arregla aca mismo, en la fila donde se ve el
+   * problema.
+   */
+  function editApkUrl(app) {
+    var actual = /^https?:\/\//.test(app.apk || "") ? app.apk : "";
+    var sugerida = apkBase() +
+      slug(app.name).replace(/\./g, "-") + "-" + app.version + ".apk";
+
+    var puesta = window.prompt(
+      "Dirección de descarga de «" + app.name + "».\n\n" +
+      "Dejala vacía si todavía no subiste la APK: los equipos no la van a " +
+      "ofrecer, pero el catálogo queda válido y podés publicar el resto.",
+      actual || sugerida
+    );
+    if (puesta === null) return;
+
+    puesta = puesta.trim();
+    if (puesta && !/^https?:\/\//.test(puesta)) {
+      flash($("msgApps"), "La dirección tiene que empezar con http:// o https://, o quedar vacía.", true);
+      return;
+    }
+
+    /*
+     * Se compara contra lo que hay guardado, no contra el valor que se
+     * ofrecio para editar. Si no, borrar una direccion invalida como
+     * "URL_TVPLUS" no hacia nada: ambas cuentan como vacias y el error
+     * quedaba ahi para siempre.
+     */
+    var previa = typeof app.apk === "string" ? app.apk : "";
+    if (puesta === previa) return;
+
+    if (puesta) app.apk = puesta; else delete app.apk;
+
+    /*
+     * La huella describe un archivo concreto. Si cambia la direccion,
+     * deja de corresponder: se borra antes que verificar contra el
+     * archivo equivocado y que la instalacion falle sin explicacion.
+     */
+    delete app.sha256;
+
+    commitApps(puesta
+      ? "«" + app.name + "»: dirección actualizada."
+      : "«" + app.name + "» queda sin APK: los equipos no la van a ofrecer.");
+  }
+
+  function renderAppsOut() {
+    var result = validateApps(state.apps);
+    renderChecks($("appsChecks"), result);
+    $("appsOut").textContent = JSON.stringify(state.apps, null, 2);
+    $("appsCopy").disabled = result.errors.length > 0;
+  }
+
+  function commitApps(message) {
+    persist("apps", state.apps);
+    renderCatalog();
+    renderAppsOut();
+    if (message) flash($("msgApps"), message);
+  }
+
+  function compareVersions(a, b) {
+    var pa = String(a).split(".").map(function (x) { return parseInt(x, 10) || 0; });
+    var pb = String(b).split(".").map(function (x) { return parseInt(x, 10) || 0; });
+    for (var i = 0; i < Math.max(pa.length, pb.length); i++) {
+      var x = pa[i] || 0, y = pb[i] || 0;
+      if (x !== y) return x > y ? 1 : -1;
+    }
+    return 0;
+  }
+
+  function verdict(existing, version) {
+    var box = $("apkVerdict");
+    box.textContent = "";
+    var div = document.createElement("div");
+    var head = document.createElement("b");
+    div.appendChild(head);
+    var body = document.createTextNode("");
+    div.appendChild(body);
+
+    if (!existing) {
+      div.className = "callout";
+      head.textContent = "Aplicación nueva";
+      body.textContent = "No está en el catálogo. Completá los datos y se agrega.";
+    } else if (!version || !RE_VERSION.test(version)) {
+      div.className = "callout warn";
+      head.textContent = "Revisá la versión";
+      body.textContent = "Tiene que ser solo números y puntos para que los equipos la comparen bien.";
+    } else {
+      var cmp = compareVersions(version, existing.version);
+      if (cmp > 0) {
+        div.className = "callout ok";
+        head.textContent = "Actualización de " + existing.name;
+        body.textContent = "De la " + existing.version + " a la " + version + ". Los equipos la van a ofrecer como ACTUALIZAR.";
+      } else if (cmp === 0) {
+        div.className = "callout warn";
+        head.textContent = "Es la misma versión";
+        body.textContent = existing.name + " ya figura como " + version + " en el catálogo. Los equipos no van a hacer nada.";
+      } else {
+        div.className = "callout bad";
+        head.textContent = "Vuelta a una versión anterior";
+        body.textContent = "De la " + existing.version + " a la " + version + ". Android no permite bajar de versión sin desinstalar, así que se marcó «Desinstalar la versión anterior primero». Sin eso, los equipos la ignorarían.";
+        $("aUninst").checked = true;
+      }
+    }
+    box.appendChild(div);
+  }
+
+  function refreshVerdict() {
+    var pkg = $("aPkg").value.trim();
+    var existing = state.apps.apps.filter(function (a) { return a.package === pkg; })[0];
+    verdict(existing, $("aVer").value.trim());
+    renderFileHint();
+  }
+
+  function renderFileHint() {
+    var name = $("aFile").value.trim();
+    var hint = $("aFileHint");
+    if (!/^[A-Za-z0-9._-]+\.apk$/.test(name)) {
+      hint.style.color = "var(--bad)";
+      hint.textContent = "Usá solo letras, números, puntos y guiones, terminando en .apk. Si el archivo tiene otro nombre, renombralo antes de subirlo.";
+      return;
+    }
+    hint.style.color = "";
+    hint.textContent = "Se va a descargar de " + apkBase() + name + (state.pending && state.pending.size > 25 * 1048576
+      ? " — pesa más de 25 MB, así que la web de GitHub no la aceptaría: esta es la única vía."
+      : "");
+  }
+
+  function fillCategorySelect(selected) {
+    var sel = $("aCat");
+    sel.textContent = "";
+    categories().forEach(function (c) {
+      var o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o);
+    });
+    var nueva = document.createElement("option"); nueva.value = "__nueva"; nueva.textContent = "+ categoría nueva…"; sel.appendChild(nueva);
+    if (selected) sel.value = selected;
+  }
+
+  function onApk(file) {
+    if (!file) return;
+    if (!/\.apk$/i.test(file.name)) { flash($("msgApk"), "Ese archivo no es una APK.", true); return; }
+    flash($("msgApk"), "Leyendo la APK…");
+
+    readApk(file).then(function (info) {
+      state.pending = info;
+      var m = info.manifest;
+
+      $("apkResult").hidden = false;
+      $("fPkg").textContent = (m && m.pkg) || "no se pudo leer";
+      $("fVer").textContent = (m && m.versionName) ? m.versionName + (m.versionCode ? " (" + m.versionCode + ")" : "") : "no se pudo leer";
+      $("fSize").textContent = peso(info.size);
+
+      var pkg = (m && m.pkg) || "";
+      var ver = (m && m.versionName) || "";
+      var existing = state.apps.apps.filter(function (a) { return a.package === pkg; })[0];
+
+      $("aPkg").value = pkg;
+      $("aVer").value = ver;
+      $("aName").value = existing ? existing.name : "";
+      $("aDesc").value = existing ? (existing.description || "") : "";
+      fillCategorySelect(existing ? existing.category : categories()[0]);
+      $("aReq").checked = existing ? !!existing.required : true;
+      $("aRec").checked = existing ? !!existing.recommended : false;
+      $("aUninst").checked = existing ? !!existing.uninstall_first : false;
+
+      /*
+       * Si lo que se esta subiendo es el propio launcher, la casilla de
+       * desinstalar primero se apaga y se traba: dejarla marcada le
+       * pediria al equipo que borre su pantalla de inicio y despues
+       * instale, con el aparato ya sin interfaz en el medio.
+       */
+      var subiendoLauncher = pkg === PAQUETE_LAUNCHER;
+      $("aUninst").checked = subiendoLauncher ? false : $("aUninst").checked;
+      $("aUninst").disabled = subiendoLauncher;
+      $("aUninst").parentNode.style.opacity = subiendoLauncher ? "0.5" : "";
+
+      var clean = /^[A-Za-z0-9._-]+\.apk$/.test(info.fileName) ? info.fileName
+        : slug((existing && existing.name) || pkg.split(".").pop() || "app") + "-" + (ver || "version") + ".apk";
+      $("aFile").value = clean;
+
+      $("apkForm").hidden = false;
+      refreshVerdict();
+
+      flash($("msgApk"), (m && m.pkg && m.versionName)
+        ? "APK leída. Revisá los datos antes de agregarla."
+        : "No se pudo leer todo de la APK. Completá lo que falta a mano.", !(m && m.pkg && m.versionName));
+    }, function (e) {
+      flash($("msgApk"), "No se pudo leer el archivo: " + (e && e.message), true);
+    });
+  }
+
+  function addPending() {
+    if (!state.pending) return;
+    var pkg = $("aPkg").value.trim(), ver = $("aVer").value.trim(), name = $("aName").value.trim();
+    var file = $("aFile").value.trim();
+    var cat = $("aCat").value;
+
+    if (cat === "__nueva") {
+      cat = (window.prompt("Nombre de la categoría nueva (ej: deportes)") || "").trim().toLowerCase();
+      if (!cat) return;
+    }
+    if (!RE_PKG.test(pkg)) { flash($("msgApk"), "El paquete no es válido.", true); return; }
+    if (!RE_VERSION.test(ver)) { flash($("msgApk"), "La versión tiene que ser solo números y puntos.", true); return; }
+    if (!name) { flash($("msgApk"), "Poné un nombre visible.", true); return; }
+    if (!/^[A-Za-z0-9._-]+\.apk$/.test(file)) { flash($("msgApk"), "Corregí el nombre del archivo.", true); return; }
+
+    var existing = state.apps.apps.filter(function (a) { return a.package === pkg; })[0];
+    var entry = existing || { id: slug(name).replace(/\./g, "-") };
+
+    /* Se anota antes de pisarla, para poder sacarla del repositorio. */
+    var anteriorApk = existing && typeof existing.apk === "string" ? existing.apk : "";
+
+    entry.name = name;
+    entry.description = $("aDesc").value.trim();
+    entry.package = pkg;
+    entry.version = ver;
+    entry.apk = apkBase() + file;
+    entry.category = cat;
+    entry.recommended = $("aRec").checked;
+    entry.required = $("aReq").checked;
+    entry.sha256 = state.pending.sha256;
+    if ($("aUninst").checked) entry.uninstall_first = true; else delete entry.uninstall_first;
+    delete entry.remove;
+
+    /* El launcher nunca se desinstala para actualizarse. */
+    if (pkg === PAQUETE_LAUNCHER) delete entry.uninstall_first;
+
+    if (!existing) {
+      while (state.apps.apps.some(function (a) { return a.id === entry.id; })) entry.id += "-2";
+      state.apps.apps.push(entry);
+    }
+
+    /*
+     * La APK queda retenida para que "Publicar" la suba antes del
+     * apps.json. Ese orden es el que evita que los equipos vean una
+     * version que todavia no existe como archivo.
+     */
+    state.upload = {
+      name: file,
+      file: state.pending.file,
+      anterior: rutaDeApk(anteriorApk)
+    };
+
+    discardPending();
+    renderUploadStrip();
+    commitApps("«" + name + "» " + (existing ? "actualizada" : "agregada") + ". Ahora publicá: sube la APK y el apps.json en ese orden.");
+  }
+
+  function discardPending() {
+    state.pending = null;
+    $("apkForm").hidden = true;
+    $("apkResult").hidden = true;
+    $("apkVerdict").textContent = "";
+    $("apkFile").value = "";
+  }
+
+  /* ============================================================ GITHUB
+     La consola habla directo con la interfaz de GitHub: sube la APK a la
+     publicacion de descargas y despues escribe los archivos de texto.
+     El token vive solo en este navegador. */
+
+  function bytesToB64(bytes) {
+    var bin = "", chunk = 0x8000;
+    for (var i = 0; i < bytes.length; i += chunk) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    return btoa(bin);
+  }
+  function textToB64(t) { return bytesToB64(new TextEncoder().encode(t)); }
+  function b64ToText(b64) {
+    var bin = atob(String(b64).replace(/[^A-Za-z0-9+\/=]/g, ""));
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder("utf-8").decode(bytes);
+  }
+
+  /*
+   * Los equipos leen con org.json: toma el primer bloque y no se queja
+   * de lo que venga despues. JSON.parse del navegador es estricto y
+   * falla con todo el archivo. Para que la consola vea exactamente lo
+   * mismo que ve el equipo, se lee igual, y se avisa que sobra texto.
+   */
+  function parseFirstJson(text) {
+    var s = String(text);
+    var ini = s.indexOf("{");
+    if (ini < 0) return { value: JSON.parse(s), extra: false };
+
+    var i = ini, prof = 0, enTexto = false;
+    while (i < s.length) {
+      var c = s.charAt(i);
+      if (enTexto) {
+        if (c === "\\") i++;
+        else if (c === '"') enTexto = false;
+      } else if (c === '"') {
+        enTexto = true;
+      } else if (c === "{") {
+        prof++;
+      } else if (c === "}") {
+        prof--;
+        if (prof === 0) { i++; break; }
+      }
+      i++;
+    }
+    if (prof !== 0) return { value: JSON.parse(s), extra: false };
+
+    return {
+      value: JSON.parse(s.slice(ini, i)),
+      extra: s.slice(i).trim().length > 0 || s.slice(0, ini).trim().length > 0
+    };
+  }
+
+  function ghMessage(status, data) {
+    var m = (data && data.message) ? String(data.message) : "";
+    if (status === 401) return "GitHub rechaz\u00f3 el token (401): puede estar mal copiado o vencido. Sacate uno nuevo y pegalo de nuevo.";
+    if (status === 403) return "GitHub no autoriza la operaci\u00f3n (403). Revis\u00e1 que el token tenga Contents en Read and write sobre este repositorio." + (m ? " GitHub dice: " + m : "");
+    if (status === 404) return "GitHub responde que no existe (404). Suele ser el nombre del repositorio mal escrito, o un token que no tiene acceso a ese repositorio.";
+    if (status === 409) return "El archivo cambi\u00f3 en GitHub justo mientras publicabas (409). Tra\u00e9 los archivos de nuevo y repet\u00ed.";
+    if (status === 422) return "GitHub rechaz\u00f3 el contenido (422)." + (m ? " " + m : "");
+    return "GitHub respondi\u00f3 " + status + (m ? ": " + m : "");
+  }
+
+  function ghHeaders(extra) {
+    var h = { "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
+    if (ghToken) h.Authorization = "Bearer " + ghToken;
+    if (extra) Object.keys(extra).forEach(function (k) { h[k] = extra[k]; });
+    return h;
+  }
+
+  function ghApi(path, opts) {
+    opts = opts || {};
+    return fetch("https://api.github.com" + path, {
+      method: opts.method || "GET",
+      headers: ghHeaders(opts.headers),
+      body: opts.body,
+      cache: "no-store"
+    }).then(function (r) {
+      return r.text().then(function (t) {
+        var data = null;
+        try { data = t ? JSON.parse(t) : null; } catch (e) { data = null; }
+        if (!r.ok) {
+          var err = new Error(ghMessage(r.status, data));
+          err.status = r.status;
+          throw err;
+        }
+        return data;
+      });
+    }, function () {
+      ghBlocked = true; renderGh();
+      throw new Error(BLOQUEADA);
+    });
+  }
+
+  /* Lectura: con token por la interfaz (trae la firma del archivo, que
+     hace falta para escribir); sin token, por la copia publica. */
+  function ghRead(path) {
+    if (ghToken) {
+      return ghApi("/repos/" + gh.owner + "/" + gh.repo + "/contents/" + path +
+        "?ref=" + encodeURIComponent(gh.branch) + "&t=" + Date.now())
+        .then(function (d) { return { sha: d.sha, text: b64ToText(d.content || "") }; },
+              function (e) { if (e.status === 404) return null; throw e; });
+    }
+    return fetch(rawBase() + path + "?t=" + Date.now(), { cache: "no-store" }).then(function (r) {
+      if (r.status === 404) return null;
+      if (!r.ok) throw new Error("GitHub respondi\u00f3 " + r.status + " al leer " + path + ".");
+      return r.text().then(function (t) { return { sha: null, text: t }; });
+    }, function () {
+      ghBlocked = true; renderGh();
+      throw new Error(BLOQUEADA);
+    });
+  }
+
+  function ghPutFile(path, contentB64, message, sha) {
+    var body = { message: message, content: contentB64, branch: gh.branch };
+    if (sha) body.sha = sha;
+    return ghApi("/repos/" + gh.owner + "/" + gh.repo + "/contents/" + path, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+  }
+
+  /* Nombres de archivo que hay hoy en la carpeta de las APK. */
+  function ghApkFolder() {
+    return ghApi("/repos/" + gh.owner + "/" + gh.repo + "/contents/" +
+      gh.folder + "?ref=" + encodeURIComponent(gh.branch) + "&t=" + Date.now())
+      .then(function (lista) {
+        var hay = {};
+        (Array.isArray(lista) ? lista : []).forEach(function (f) { hay[f.name] = 1; });
+        return hay;
+      }, function (e) {
+        /* Todavia no existe: se crea sola con la primera APK. */
+        if (e.status === 404) return {};
+        throw e;
+      });
+  }
+
+  /* Pedido con barra de avance. fetch no informa cuanto lleva subido. */
+  function ghXhr(method, url, bodyObj, onProgress) {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open(method, url);
+      xhr.setRequestHeader("Authorization", "Bearer " + ghToken);
+      xhr.setRequestHeader("Accept", "application/vnd.github+json");
+      xhr.setRequestHeader("X-GitHub-Api-Version", "2022-11-28");
+      xhr.setRequestHeader("Content-Type", "application/json");
+      if (xhr.upload && onProgress) {
+        xhr.upload.onprogress = function (e) {
+          if (e.lengthComputable) onProgress(e.loaded / e.total);
+        };
+      }
+      xhr.onload = function () {
+        var data = null;
+        try { data = JSON.parse(xhr.responseText || "null"); } catch (e) { data = null; }
+        if (xhr.status >= 200 && xhr.status < 300) { resolve(data || {}); return; }
+        reject(new Error(ghMessage(xhr.status, data)));
+      };
+      xhr.onerror = function () {
+        reject(new Error("Se cort\u00f3 la conexi\u00f3n con GitHub. Prob\u00e1 de nuevo con una conexi\u00f3n estable."));
+      };
+      xhr.send(JSON.stringify(bodyObj));
+    });
+  }
+
+  /*
+   * La APK va como un archivo mas del repositorio, no como adjunto de
+   * una publicacion.
+   *
+   * Motivo: uploads.github.com, que es donde viven los adjuntos,
+   * contesta 400 y sin ninguna cabecera de CORS al permiso previo que
+   * el navegador pide antes de mandar un archivo. Ningun navegador
+   * puede subir ahi, con token o sin el. api.github.com si lo permite.
+   *
+   * Se sube el contenido como blob, se cuelga del arbol y se cierra con
+   * un commit. Si algo falla en el medio, la rama no se movio: no queda
+   * un estado a medias ni una APK rota publicada.
+   */
+  function ghUploadApk(nombre, file, anterior, onProgress) {
+    var repo = "/repos/" + gh.owner + "/" + gh.repo;
+    var ruta = gh.folder + "/" + nombre;
+
+    return file.arrayBuffer().then(function (buf) {
+      return ghXhr("POST", "https://api.github.com" + repo + "/git/blobs",
+        { content: bytesToB64(new Uint8Array(buf)), encoding: "base64" }, onProgress);
+
+    }).then(function (blob) {
+      return ghApi(repo + "/git/ref/heads/" + encodeURIComponent(gh.branch)).then(function (ref) {
+        var padre = ref.object.sha;
+
+        return ghApi(repo + "/git/commits/" + padre).then(function (commitPadre) {
+          return ghApi(repo + "/git/trees", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              base_tree: commitPadre.tree.sha,
+              tree: [{ path: ruta, mode: "100644", type: "blob", sha: blob.sha }]
+            })
+          }).then(function (tree) {
+            return ghApi(repo + "/git/commits", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                message: "APK " + nombre + " desde la consola",
+                tree: tree.sha,
+                parents: [padre]
+              })
+            });
+          }).then(function (commit) {
+            return ghApi(repo + "/git/refs/heads/" + encodeURIComponent(gh.branch), {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sha: commit.sha })
+            });
+          });
+        });
+      });
+
+    }).then(function (r) {
+      /*
+       * Limpieza de la version anterior del mismo programa. Va despues
+       * y aparte a proposito: si falla no importa, la APK nueva ya esta
+       * publicada y es lo unico que hace falta.
+       */
+      if (!anterior || anterior === ruta) return r;
+
+      return ghRead(anterior).then(function (viejo) {
+        if (!viejo || !viejo.sha) return r;
+        return ghApi(repo + "/contents/" + anterior, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: "Se saca la versi\u00f3n anterior: " + anterior,
+            sha: viejo.sha,
+            branch: gh.branch
+          })
+        }).then(function () { return r; }, function () { return r; });
+      }, function () { return r; });
+    });
+  }
+
+  function ghCommitJson(path, obj, message, step) {
+    var text = JSON.stringify(obj, null, 2) + "\n";
+    return ghRead(path).then(function (actual) {
+      if (actual && actual.text.replace(/\s+/g, "") === text.replace(/\s+/g, "")) {
+        if (step) step.ok(path + ": ya estaba igual en GitHub.");
+        return null;
+      }
+      /*
+       * Si el archivo cambio en GitHub desde que esta consola lo trajo,
+       * publicar lo pisa entero. Como se edita desde la computadora y
+       * desde el telefono, conviene preguntar antes que perder un cambio.
+       */
+      if (actual && ghShas[path] && ghShas[path] !== actual.sha) {
+        var seguir = window.confirm(
+          path + " cambi\u00f3 en GitHub desde que lo trajiste a esta consola.\n\n" +
+          "Si segu\u00eds, lo que ves ac\u00e1 reemplaza lo que est\u00e1 publicado.\n\n" +
+          "\u00bfPublicar igual?"
+        );
+        if (!seguir) throw new Error("Publicaci\u00f3n cancelada. Tra\u00e9 los archivos de GitHub y revis\u00e1 antes de seguir.");
+      }
+      return ghPutFile(path, textToB64(text), message, actual ? actual.sha : null).then(function (r) {
+        ghShas[path] = (r && r.content) ? r.content.sha : null;
+        if (step) step.ok(path + " publicado.");
+        return r;
+      });
+    }).then(null, function (e) {
+      if (step) step.err(e.message);
+      throw e;
+    });
+  }
+
+  /* ------------------------------------------------------------ interfaz */
+
+  function logStep(ulId, text) {
+    var ul = $(ulId);
+    var li = document.createElement("li");
+    li.className = "run";
+    li.textContent = text;
+    ul.appendChild(li);
+    return {
+      ok: function (t) { li.className = "ok"; if (t) li.textContent = t; },
+      warn: function (t) { li.className = "warn"; if (t) li.textContent = t; },
+      err: function (t) { li.className = "err"; if (t) li.textContent = t; }
+    };
+  }
+
+  function setBar(id, fraction) {
+    $(id).firstElementChild.style.width = Math.round(Math.max(0, Math.min(1, fraction)) * 100) + "%";
+  }
+
+  function ghReady(msgEl) {
+    if (ghBlocked) { flash(msgEl, BLOQUEADA, true); return false; }
+    if (!ghToken) {
+      openGh();
+      flash(msgEl, "Primero conect\u00e1 la consola con GitHub.", true);
+      return false;
+    }
+    return true;
+  }
+
+  function renderGh() {
+    var pill = $("ghPill"), dot = $("ghDot"), text = $("ghPillText");
+    pill.className = "ghpill";
+    dot.className = "dot";
+    if (ghBlocked) {
+      pill.classList.add("off");
+      text.textContent = "GitHub no disponible ac\u00e1";
+    } else if (ghToken) {
+      pill.classList.add("on");
+      dot.classList.add("on");
+      text.textContent = gh.owner + "/" + gh.repo;
+    } else {
+      text.textContent = "Conectar con GitHub";
+    }
+
+    $("ghBlockedNote").hidden = !ghBlocked;
+    ["appsPublish", "statusPublish", "configPublish"].forEach(function (id) {
+      $(id).title = ghBlocked ? BLOQUEADA : "";
+    });
+
+    var base = repoUrl(), rama = "/" + gh.branch + "/";
+    $("lnkApps").href = base + "/edit" + rama + "apps.json";
+    $("lnkStatus").href = base + "/edit" + rama + "status.json";
+    $("lnkConfig").href = base + "/edit" + rama + "config.json";
+    $("lnkBg").href = base + "/upload" + rama + "backgrounds";
+    $("lnkApkFolder").href = base + "/upload" + rama + gh.folder;
+
+    renderFileHint();
+  }
+
+  function renderUploadStrip() {
+    var box = $("apkPending");
+    if (!state.upload) { box.hidden = true; return; }
+    box.hidden = false;
+    $("apkPendingName").textContent = state.upload.name;
+    $("apkPendingText").textContent =
+      "Pesa " + peso(state.upload.file.size) + ". Al publicar se sube primero el archivo y reci\u00e9n despu\u00e9s el apps.json.";
+  }
+
+  function openGh() {
+    $("ghOwner").value = gh.owner;
+    $("ghRepo").value = gh.repo;
+    $("ghBranch").value = gh.branch;
+    $("ghFolder").value = gh.folder;
+    $("ghToken").value = ghToken;
+    var guardado = local("otv_gh");
+    $("ghRemember").checked = !guardado || guardado.remember !== false;
+    $("ghPanel").hidden = false;
+  }
+
+  function readGhForm() {
+    gh.owner = $("ghOwner").value.trim() || GH_DEFAULT.owner;
+    gh.repo = $("ghRepo").value.trim() || GH_DEFAULT.repo;
+    gh.branch = $("ghBranch").value.trim() || GH_DEFAULT.branch;
+    gh.folder = ($("ghFolder").value.trim() || GH_DEFAULT.folder)
+      .replace(/^\/+|\/+$/g, "") || GH_DEFAULT.folder;
+    ghToken = $("ghToken").value.trim();
+
+    local("otv_gh", {
+      owner: gh.owner, repo: gh.repo, branch: gh.branch, folder: gh.folder,
+      remember: $("ghRemember").checked
+    });
+    try {
+      if ($("ghRemember").checked && ghToken) localStorage.setItem("otv_gh_token", ghToken);
+      else localStorage.removeItem("otv_gh_token");
+    } catch (e) { /* almacenamiento no disponible */ }
+
+    ghShas = {};
+    renderGh();
+    renderAppsOut();
+  }
+
+  function ghTest() {
+    readGhForm();
+    $("ghLog").textContent = "";
+    if (!ghToken) { flash($("msgGh"), "Peg\u00e1 el token antes de probar.", true); return; }
+
+    var s1 = logStep("ghLog", "Verificando el token\u2026");
+    ghApi("/user").then(function (u) {
+      s1.ok("Token v\u00e1lido, entra como " + (u.login || "tu cuenta") + ".");
+      var s2 = logStep("ghLog", "Buscando " + gh.owner + "/" + gh.repo + "\u2026");
+      return ghApi("/repos/" + gh.owner + "/" + gh.repo).then(function (r) {
+        if (r.permissions && r.permissions.push === false) {
+          s2.err("El token llega al repositorio pero no puede escribir. Ponele Contents en Read and write.");
+          throw new Error("El token no tiene permiso de escritura.");
+        }
+        s2.ok("Repositorio encontrado, con permiso para escribir.");
+        var s3 = logStep("ghLog", "Buscando la carpeta " + gh.folder + "\u2026");
+        return ghApkFolder().then(function (hay) {
+          var n = Object.keys(hay).length;
+          s3.ok(n
+            ? "Carpeta " + gh.folder + " lista, con " + n + (n === 1 ? " archivo." : " archivos.")
+            : "Todav\u00eda no hay APK en " + gh.folder + ": la carpeta se crea sola con la primera.");
+        });
+      });
+    }).then(function () {
+      flash($("msgGh"), "Todo en orden. Ya pod\u00e9s publicar desde la consola.");
+    }, function (e) {
+      flash($("msgGh"), e.message, true);
+    });
+  }
+
+  function aplicarStatus(p) {
+    state.statusBase = p;
+    persist("status", p);
+    $("statusBase").value = JSON.stringify(p, null, 2);
+    /* El formulario pasa a mostrar el aviso que esta realmente al aire. */
+    if ("notice_enabled" in p) $("nOn").checked = !!p.notice_enabled;
+    if (p.notice_title) $("nTitle").value = p.notice_title;
+    if (p.notice_text) $("nText").value = p.notice_text;
+    if (p.notice_id) $("nId").value = p.notice_id;
+    if ("notice_show_once" in p) $("nOnce").checked = !!p.notice_show_once;
+    if ("server_online" in p) $("sOnline").checked = p.server_online !== false;
+    if (p.message) $("sMsg").value = p.message;
+    if (p.notice_level) setLevel(p.notice_level);
+    /*
+     * El vencimiento ya publicado se respeta tal cual. Si se toca algun
+     * boton de vigencia se recalcula y este valor se descarta.
+     */
+    state.keepUntil = p.notice_until || "";
+    state.hoursPicked = true;
+    setHours(0);
+    renderStatus();
+  }
+
+  function ghPull() {
+    readGhForm();
+    $("ghLog").textContent = "";
+
+    var trabajos = [
+      ["apps.json", function (p) {
+        state.apps = p; persist("apps", p);
+        $("appsBase").value = JSON.stringify(p, null, 2);
+        renderCatalog(); renderAppsOut();
+        /*
+         * Se carga igual aunque tenga errores: es justamente cuando mas
+         * falta hace tenerlo en la consola para poder arreglarlo.
+         */
+        var r = validateApps(p);
+        return r.errors.length ? "lo publicado tiene " + r.errors.length +
+          (r.errors.length === 1 ? " error" : " errores") + ", mirá la validación" : "";
+      }],
+      ["status.json", aplicarStatus],
+      ["config.json", function (p) {
+        state.configBase = p; persist("config", p);
+        $("configBase").value = JSON.stringify(p, null, 2);
+        $("iName").value = (p.system && p.system.background) || "default.png";
+        renderConfig();
+      }]
+    ];
+
+    var cadena = Promise.resolve();
+    var fallos = 0, flojos = 0;
+
+    trabajos.forEach(function (par) {
+      cadena = cadena.then(function () {
+        var s = logStep("ghLog", "Trayendo " + par[0] + "\u2026");
+        return ghRead(par[0]).then(function (actual) {
+          if (!actual) { s.ok(par[0] + ": todav\u00eda no existe en GitHub."); return; }
+
+          var leido = parseFirstJson(actual.text);
+          var p = leido.value;
+          if (!p || typeof p !== "object" || Array.isArray(p)) throw new Error("no es un objeto");
+
+          var avisos = [];
+          if (leido.extra) {
+            avisos.push("hay texto de m\u00e1s despu\u00e9s del primer bloque y los equipos lo ignoran");
+          }
+          var propio = par[1](p);
+          if (propio) avisos.push(propio);
+
+          if (actual.sha) ghShas[par[0]] = actual.sha;
+
+          if (avisos.length) { flojos++; s.warn(par[0] + ": " + avisos.join("; ") + "."); }
+          else s.ok(par[0] + " al d\u00eda.");
+        }).then(null, function (e) {
+          fallos++;
+          s.err(par[0] + ": " + (e.message || "no se pudo leer"));
+        });
+      });
+    });
+
+    cadena.then(function () {
+      if (fallos) {
+        flash($("msgGh"), "Se trajo lo que se pudo. Mir\u00e1 el detalle de arriba.", true);
+      } else if (flojos) {
+        flash($("msgGh"), "Tra\u00eddo, pero hay cosas para revisar en el detalle de arriba.", true);
+      } else {
+        flash($("msgGh"), "Listo: la consola trabaja sobre lo que hay publicado ahora.");
+      }
+    });
+  }
+
+  function publishApps() {
+    var r = validateApps(state.apps);
+    if (r.errors.length) { flash($("msgApps"), "Hay errores en el cat\u00e1logo. Corregilos antes de publicar.", true); return; }
+    if (!ghReady($("msgApps"))) return;
+
+    $("appsLog").textContent = "";
+    $("appsPublish").disabled = true;
+    var pendiente = state.upload;
+    var cadena;
+
+    if (pendiente) {
+      var s1 = logStep("appsLog", "Subiendo " + pendiente.name + " (" + peso(pendiente.file.size) + ")\u2026");
+      $("appsBar").hidden = false;
+      setBar("appsBar", 0);
+      cadena = ghUploadApk(pendiente.name, pendiente.file, pendiente.anterior,
+        function (p) { setBar("appsBar", p); })
+        .then(function () {
+          $("appsBar").hidden = true;
+          s1.ok(pendiente.name + " subida.");
+          state.upload = null;
+          renderUploadStrip();
+        }, function (e) {
+          $("appsBar").hidden = true;
+          s1.err("No se pudo subir la APK: " + e.message);
+          throw e;
+        });
+    } else {
+      cadena = Promise.resolve();
+    }
+
+    /*
+     * Antes de publicar el catalogo se comprueba que cada APK a la que
+     * apunta exista de verdad en la publicacion. Es la red que atrapa el
+     * caso peor: agregar una app, cerrar la consola sin publicar (el
+     * archivo elegido se pierde al recargar) y publicar despues un
+     * catalogo que manda a los equipos a una descarga que no esta.
+     */
+    cadena.then(function () {
+      var s2 = logStep("appsLog", "Revisando que las APK del cat\u00e1logo est\u00e9n subidas\u2026");
+      return ghApkFolder().then(function (hay) {
+        var faltan = [], raras = [];
+
+        state.apps.apps.forEach(function (a) {
+          if (a.remove || typeof a.apk !== "string" || !a.apk) return;
+
+          var ruta = rutaDeApk(a.apk);
+          if (!ruta) {
+            /*
+             * Una direccion a otro servidor es asunto de quien la puso.
+             * Pero una que apunta a este repositorio y no a la carpeta
+             * de las APK casi siempre es una sobra de cuando esto usaba
+             * las publicaciones de GitHub, que no existen.
+             */
+            if (esDeEsteRepo(a.apk)) raras.push(a.name);
+            return;
+          }
+
+          var n = ruta.slice(gh.folder.length + 1);
+          if (!hay[n]) faltan.push(a.name + " (" + n + ")");
+        });
+
+        if (raras.length) {
+          throw new Error("Estas apps apuntan a un lugar de tu repositorio que ya no se usa: " +
+            raras.join(", ") + ". Volvé a arrastrar su APK, o corregiles la dirección desde el catálogo.");
+        }
+
+        if (faltan.length) {
+          throw new Error("El cat\u00e1logo apunta a archivos que no est\u00e1n subidos: " +
+            faltan.join(", ") + ". Sub\u00ed esas APK antes de publicar el cat\u00e1logo.");
+        }
+        s2.ok("Todas las APK del cat\u00e1logo est\u00e1n subidas.");
+      }).then(null, function (e) { s2.err(e.message); throw e; });
+    }).then(function () {
+      var s3 = logStep("appsLog", "Publicando apps.json\u2026");
+      return ghCommitJson("apps.json", state.apps, "Cat\u00e1logo actualizado desde la consola", s3);
+    }).then(function () {
+      flash($("msgApps"), "Publicado. En hasta 5 minutos los equipos lo toman.");
+    }, function (e) {
+      flash($("msgApps"), e.message, true);
+    }).then(function () {
+      $("appsPublish").disabled = false;
+    });
+  }
+
+  function publishStatus() {
+    var d = buildStatus();
+    if (validateStatus(d).errors.length) { flash($("msgStatus"), "Corregí lo que falta antes de publicar.", true); return; }
+    if (!ghReady($("msgStatus"))) return;
+
+    $("statusLog").textContent = "";
+    $("statusPublish").disabled = true;
+
+    var s = logStep("statusLog", "Publicando status.json\u2026");
+    ghCommitJson("status.json", d, d.notice_enabled ? "Aviso: " + d.notice_title : "Aviso apagado", s)
+      .then(function () {
+        flash($("msgStatus"), d.notice_enabled
+          ? "Aviso publicado. En hasta 5 minutos aparece en los equipos."
+          : "Aviso apagado. En hasta 5 minutos desaparece de los equipos.");
+      }, function (e) {
+        flash($("msgStatus"), e.message, true);
+      }).then(function () {
+        $("statusPublish").disabled = false;
+      });
+  }
+
+  function publishConfig() {
+    var nombre = $("iName").value.trim();
+    if (!/^[A-Za-z0-9._-]+\.(jpg|jpeg|png|webp)$/i.test(nombre)) {
+      flash($("msgImg"), "Corregí el nombre del archivo antes de publicar.", true); return;
+    }
+    if (!ghReady($("msgConfig"))) return;
+
+    $("configLog").textContent = "";
+    $("configPublish").disabled = true;
+    var blob = state.imgBlob;
+    var cadena;
+
+    if (blob) {
+      var s1 = logStep("configLog", "Subiendo backgrounds/" + nombre + " (" + peso(blob.size) + ")\u2026");
+      $("configBar").hidden = false;
+      setBar("configBar", 0.15);
+      cadena = blob.arrayBuffer().then(function (buf) {
+        setBar("configBar", 0.4);
+        var ruta = "backgrounds/" + nombre;
+        return ghRead(ruta).then(function (actual) {
+          return ghPutFile(ruta, bytesToB64(new Uint8Array(buf)), "Fondo " + nombre + " desde la consola", actual ? actual.sha : null);
+        });
+      }).then(function () {
+        $("configBar").hidden = true;
+        s1.ok("backgrounds/" + nombre + " subido.");
+      }, function (e) {
+        $("configBar").hidden = true;
+        s1.err("No se pudo subir la imagen: " + e.message);
+        throw e;
+      });
+    } else {
+      cadena = Promise.resolve();
+    }
+
+    cadena.then(function () {
+      var s2 = logStep("configLog", "Publicando config.json\u2026");
+      return ghCommitJson("config.json", buildConfig(), "Fondo: " + nombre, s2);
+    }).then(function () {
+      flash($("msgConfig"), "Publicado. En hasta 5 minutos los equipos cambian el fondo.");
+    }, function (e) {
+      flash($("msgConfig"), e.message, true);
+    }).then(function () {
+      $("configPublish").disabled = false;
+    });
+  }
+
+  /*
+   * Dentro de Claude las conexiones salientes estan bloqueadas y fallan
+   * sin aviso. Se prueba una vez al arrancar para poder decirlo de
+   * entrada, en vez de que se entere cuando aprieta Publicar.
+   */
+  function ghProbe() {
+    fetch(rawBase() + "config.json?t=" + Date.now(), { cache: "no-store" })
+      .then(function () { ghBlocked = false; renderGh(); },
+            function () { ghBlocked = true; renderGh(); });
+  }
+
+  /* ============================================================ AVISOS */
+
+  var PRESETS = [
+    { id: "b1", level: "red", title: "INCIDENCIA GENERAL", text: "Estamos experimentando inconvenientes en algunos canales. Nuestro equipo ya se encuentra trabajando para solucionarlo. No es necesario reinstalar ni modificar ninguna aplicación." },
+    { id: "b2", level: "yellow", title: "MANTENIMIENTO PROGRAMADO", text: "Esta noche vamos a realizar tareas de mantenimiento. El servicio puede interrumpirse por períodos breves. No hace falta que hagas nada en el equipo." },
+    { id: "b3", level: "green", title: "SERVICIO NORMALIZADO", text: "El servicio ya funciona con normalidad. Si seguís viendo algún inconveniente, apagá y volvé a encender el equipo." },
+    { id: "b4", level: "yellow", title: "PROBLEMAS DEL PROVEEDOR", text: "Hay una falla en la red de nuestro proveedor que afecta la señal. Estamos siguiendo el caso y avisamos apenas se restablezca." },
+    { id: "b5", level: "yellow", title: "ACTUALIZACIÓN DISPONIBLE", text: "Hay una nueva versión disponible. Entrá a APLICACIONES y elegí ACTUALIZAR para instalarla." }
+  ];
+  var HOURS_BY_LEVEL = { red: 0, yellow: 24, green: 24 };
+
+  function freshId() {
+    var d = new Date();
+    return "aviso-" + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + "-" + pad(d.getHours()) + pad(d.getMinutes());
+  }
+
+  function setSeg(groupId, value) {
+    Array.prototype.forEach.call($(groupId).querySelectorAll("button"), function (b) {
+      b.setAttribute("aria-pressed", b.dataset.v === String(value) ? "true" : "false");
+    });
+  }
+
+  function setLevel(v) {
+    state.level = v;
+    setSeg("nLevel", v);
+    if (!state.hoursPicked) setHours(HOURS_BY_LEVEL[v]);
+  }
+  function setHours(h) { state.hours = h; setSeg("nDur", h); }
+
+  function buildStatus() {
+    var out = {};
+    Object.keys(state.statusBase).forEach(function (k) {
+      if (k.indexOf("notice_") !== 0 && k !== "server_online" && k !== "message") out[k] = state.statusBase[k];
+    });
+    var until = state.hours
+      ? stamp(new Date(Date.now() + state.hours * 3600000))
+      : (state.keepUntil || "");
+    var doc = {
+      server_online: $("sOnline").checked,
+      message: $("sMsg").value.trim() || "Servicio funcionando correctamente.",
+      notice_enabled: $("nOn").checked,
+      notice_level: state.level,
+      notice_id: $("nId").value.trim() || freshId(),
+      notice_title: $("nTitle").value.trim() || "AVISO IMPORTANTE",
+      notice_text: $("nText").value.trim(),
+      notice_updated: stamp(new Date()),
+      notice_until: until,
+      notice_show_once: $("nOnce").checked
+    };
+    var result = {};
+    Object.keys(doc).forEach(function (k) { result[k] = doc[k]; });
+    Object.keys(out).forEach(function (k) { result[k] = out[k]; });
+    return result;
+  }
+
+  function renderStatus() {
+    var d = buildStatus();
+    renderChecks($("statusChecks"), validateStatus(d));
+    $("statusOut").textContent = JSON.stringify(d, null, 2);
+    $("statusCopy").disabled = validateStatus(d).errors.length > 0;
+
+    $("nDurHint").textContent = !d.notice_enabled
+      ? "El aviso está apagado. Copiá y publicá el archivo para que desaparezca de los equipos."
+      : d.notice_until
+        ? "Se va solo el " + d.notice_until + ", sin que tengas que hacer nada."
+        : "No vence. Para sacarlo, tocá «Quitar el aviso de los equipos» y publicá.";
+
+    renderTV();
+    local("otv_draft_notice", {
+      level: state.level, hours: state.hours, hoursPicked: state.hoursPicked,
+      on: $("nOn").checked, title: $("nTitle").value, text: $("nText").value, once: $("nOnce").checked
+    });
+  }
+
+  function renderPresets() {
+    var box = $("presets");
+    box.textContent = "";
+    PRESETS.concat(state.presets).forEach(function (p) {
+      var b = document.createElement("button");
+      b.className = "preset"; b.type = "button";
+      var i = document.createElement("i"); i.className = p.level; b.appendChild(i);
+      b.appendChild(document.createTextNode(p.title));
+      if (p.custom) {
+        var x = document.createElement("i"); x.className = "x"; x.textContent = "×"; x.title = "Borrar";
+        x.addEventListener("click", function (ev) {
+          ev.stopPropagation();
+          state.presets = state.presets.filter(function (q) { return q.id !== p.id; });
+          local("otv_presets", state.presets);
+          if (db) db.doc("presets/" + p.id).delete().catch(function () {});
+          renderPresets();
+        });
+        b.appendChild(x);
+      }
+      b.addEventListener("click", function () {
+        state.hoursPicked = false;
+        setLevel(p.level);
+        $("nTitle").value = p.title; $("nText").value = p.text;
+        $("nId").value = freshId(); $("nOn").checked = true;
+        renderStatus();
+      });
+      box.appendChild(b);
+    });
+  }
+
+  /* ============================================================ FONDOS */
+
+  function buildConfig() {
+    var out = clone(state.configBase);
+    if (!out.system || typeof out.system !== "object") out.system = {};
+    out.system.background = $("iName").value.trim() || "default.png";
+    return out;
+  }
+
+  function renderConfig() {
+    var d = buildConfig();
+    var errs = [];
+    if (!/^[A-Za-z0-9._-]+\.(jpg|jpeg|png|webp)$/i.test(d.system.background)) errs.push("El nombre del fondo tiene que terminar en .jpg, .png o .webp, sin espacios.");
+    renderChecks($("configChecks"), { errors: errs, warnings: [] });
+    $("configOut").textContent = JSON.stringify(d, null, 2);
+    $("configCopy").disabled = errs.length > 0;
+    renderTV();
+  }
+
+  function onImage(file) {
+    if (!file || !/^image\//.test(file.type)) { flash($("msgImg"), "Ese archivo no es una imagen.", true); return; }
+    var reader = new FileReader();
+    reader.onload = function () {
+      var img = new Image();
+      img.onload = function () {
+        var W = 1280, H = 720;
+        var c = document.createElement("canvas"); c.width = W; c.height = H;
+        var k = Math.max(W / img.width, H / img.height);
+        c.getContext("2d").drawImage(img, (W - img.width * k) / 2, (H - img.height * k) / 2, img.width * k, img.height * k);
+        c.toBlob(function (blob) {
+          if (!blob) { flash($("msgImg"), "No se pudo procesar la imagen.", true); return; }
+          state.imgBlob = blob;
+          if (state.imgUrl) URL.revokeObjectURL(state.imgUrl);
+          state.imgUrl = URL.createObjectURL(blob);
+          $("iOrig").textContent = peso(file.size);
+          $("iOpt").textContent = peso(blob.size);
+          $("iOpt").style.color = blob.size <= 400 * 1024 ? "var(--ok)" : "var(--warn)";
+          $("iRes").textContent = img.width + "×" + img.height + " → 1280×720";
+          $("iName").value = slug(file.name.replace(/\.[^.]+$/, "")) + ".jpg";
+          $("iDownload").disabled = false;
+          renderConfig();
+          flash($("msgImg"), "Imagen lista. Fijate que el texto del panel se lea bien.");
+        }, "image/jpeg", 0.85);
+      };
+      img.onerror = function () { flash($("msgImg"), "No se pudo abrir la imagen.", true); };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /* ============================================================ EQUIPOS
+     Lo propio de un equipo vive en equipos/<CODIGO>.json. Mismo formato
+     que status.json para el aviso y que apps.json para las apps. */
+
+  var CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+
+  var eq = {
+    code: "", base: {}, existed: false, apps: [],
+    level: "yellow", hours: 24, keepUntil: "", noticeId: "",
+    info: null, pending: null
+  };
+
+  /* Acepta el codigo como lo dicte el cliente: con o sin guion, en
+     minusculas, o con O e I en lugar de 0 y 1. */
+  function normalizarCodigo(t) {
+    var s = String(t || "").toUpperCase().replace(/[^0-9A-Z]/g, "")
+      .replace(/O/g, "0").replace(/[IL]/g, "1");
+    if (s.length !== 6) return "";
+    for (var i = 0; i < 6; i++) if (CROCKFORD.indexOf(s.charAt(i)) < 0) return "";
+    return s;
+  }
+  function codigoVisible(c) { return c.slice(0, 3) + "-" + c.slice(3); }
+  function rutaEquipo(c) { return "equipos/" + c + ".json"; }
+  function nombresEquipos() { return local("otv_equipos_nombres") || {}; }
+
+  function recordarEquipo(c) {
+    var r = (local("otv_equipos_recientes") || []).filter(function (x) { return x !== c; });
+    r.unshift(c);
+    local("otv_equipos_recientes", r.slice(0, 12));
+    renderEquipoRecientes();
+  }
+
+  function renderEquipoRecientes() {
+    var box = $("eqRecents");
+    box.textContent = "";
+    (local("otv_equipos_recientes") || []).forEach(function (c) {
+      var b = document.createElement("button");
+      b.className = "preset"; b.type = "button";
+      var n = nombreDe(c);
+      b.textContent = codigoVisible(c) + (n ? " · " + n : "");
+      b.addEventListener("click", function () { abrirEquipo(c); });
+      box.appendChild(b);
+    });
+  }
+
+  function abrirEquipo(texto) {
+    var c = normalizarCodigo(texto);
+    if (!c) { flash($("msgEqOpen"), "El código son 6 letras y números, por ejemplo APE-04N.", true); return; }
+    $("eqOpen").disabled = true;
+    ghRead(rutaEquipo(c)).then(function (actual) {
+      var doc = {};
+      if (actual) {
+        doc = parseFirstJson(actual.text).value;
+        if (!doc || typeof doc !== "object" || Array.isArray(doc)) throw new Error("El archivo de ese equipo no es válido.");
+        if (actual.sha) ghShas[rutaEquipo(c)] = actual.sha;
+      }
+      cargarEquipo(c, doc, !!actual);
+      recordarEquipo(c);
+      flash($("msgEqOpen"), actual
+        ? "Abierto. Este equipo ya tiene cosas propias publicadas."
+        : "Abierto. Todavía no tiene nada propio: usa todo lo general.");
+    }).then(null, function (e) {
+      flash($("msgEqOpen"), e.message, true);
+    }).then(function () { $("eqOpen").disabled = false; });
+  }
+
+  function cargarEquipo(c, doc, existia) {
+    eq.code = c; eq.base = doc; eq.existed = existia;
+    eq.apps = Array.isArray(doc.apps) ? clone(doc.apps) : [];
+    eq.pending = null; eq.info = null;
+    eq.level = doc.notice_level || "yellow";
+    eq.noticeId = doc.notice_id || "";
+    eq.keepUntil = doc.notice_until || "";
+    eq.hours = doc.notice_enabled ? 0 : 24;
+
+    $("eqCode").value = codigoVisible(c);
+    $("eqTitle").textContent = codigoVisible(c);
+    $("eqName").value = nombreDe(c);
+    $("eqNote").value = (clientes.mapa[c] && clientes.mapa[c].nota) || "";
+    $("eqNOn").checked = !!doc.notice_enabled;
+    $("eqNTitle").value = doc.notice_title || "";
+    $("eqNText").value = doc.notice_text || "";
+    $("eqNOnce").checked = !!doc.notice_show_once;
+    $("eqApkForm").hidden = true;
+    setSeg("eqNLevel", eq.level);
+    setSeg("eqNDur", eq.hours);
+
+    $("eqEditor").hidden = false;
+    $("eqOutPanel").hidden = false;
+    renderEqApps();
+    renderEquipo();
+  }
+
+  /* ------------------------------------------------------------ clientes
+     Nombre y nota de cada equipo, en un solo archivo cifrado con
+     AES-GCM. La clave sale de la frase de Paco con PBKDF2: sin ella el
+     archivo publico no dice nada. */
+
+  var RUTA_CLIENTES = "equipos/nombres.cifrado.json";
+  var ITERACIONES = 310000;
+  var clientes = { clave: null, sal: null, mapa: {}, abierto: false, publicados: {} };
+
+  function nombreDe(c) {
+    return (clientes.mapa[c] && clientes.mapa[c].nombre) || nombresEquipos()[c] || "";
+  }
+
+  function b64aBytes(b64) {
+    var s = atob(String(b64 || ""));
+    var u = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) u[i] = s.charCodeAt(i);
+    return u;
+  }
+
+  function derivarClave(frase, sal) {
+    return crypto.subtle.importKey("raw", new TextEncoder().encode(frase), "PBKDF2", false, ["deriveKey"])
+      .then(function (base) {
+        return crypto.subtle.deriveKey(
+          { name: "PBKDF2", salt: sal, iterations: ITERACIONES, hash: "SHA-256" },
+          base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+      });
+  }
+
+  function cifrarClientes(mapa) {
+    var iv = crypto.getRandomValues(new Uint8Array(12));
+    return crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, clientes.clave,
+      new TextEncoder().encode(JSON.stringify(mapa))).then(function (buf) {
+      return {
+        nota: "Datos privados de OTV Digital, cifrados. No editar a mano.",
+        formato: 1, cifrado: "AES-GCM", kdf: "PBKDF2-SHA256", iteraciones: ITERACIONES,
+        sal: bytesToB64(clientes.sal), iv: bytesToB64(iv), datos: bytesToB64(new Uint8Array(buf))
+      };
+    });
+  }
+
+  function descifrarClientes(doc, clave) {
+    return crypto.subtle.decrypt({ name: "AES-GCM", iv: b64aBytes(doc.iv) }, clave, b64aBytes(doc.datos))
+      .then(function (buf) { return JSON.parse(new TextDecoder().decode(buf)) || {}; });
+  }
+
+  function leerClientes() {
+    return ghRead(RUTA_CLIENTES).then(function (a) {
+      if (!a) return null;
+      var doc = parseFirstJson(a.text).value;
+      if (!doc || !doc.datos || !doc.sal || !doc.iv) throw new Error("El archivo de clientes está dañado.");
+      return { sha: a.sha, doc: doc };
+    });
+  }
+
+  /* Escribe el mapa cifrado. Antes relee lo publicado y aplica el cambio
+     encima, para no pisar lo que se haya guardado desde otro dispositivo. */
+  function guardarClientes(cambio, mensaje) {
+    return leerClientes().then(function (a) {
+      var base = a ? descifrarClientes(a.doc, clientes.clave) : Promise.resolve({});
+      return base.then(null, function () {
+        throw new Error("La clave de los clientes cambió desde otro dispositivo. Olvidala y volvé a ponerla.");
+      }).then(function (mapa) {
+        cambio(mapa);
+        return cifrarClientes(mapa).then(function (doc) {
+          return ghPutFile(RUTA_CLIENTES, textToB64(JSON.stringify(doc, null, 2) + "\n"), mensaje, a ? a.sha : null);
+        }).then(function () { clientes.mapa = mapa; });
+      });
+    });
+  }
+
+  function mostrarCandado(creando) {
+    $("eqLock").hidden = false;
+    $("eqDir").hidden = true;
+    $("eqKey2Wrap").hidden = !creando;
+    $("eqUnlock").textContent = creando ? "Crear la clave" : "Ver mis equipos";
+    $("eqLockHint").textContent = creando
+      ? "Todavía no hay datos de clientes guardados. Elegí una clave de al menos 8 caracteres y repetila. Anotala en un lugar seguro: sin ella no se pueden leer los nombres (los equipos siguen funcionando igual)."
+      : "Los datos de tus clientes se guardan cifrados en GitHub. Poné la clave para verlos.";
+  }
+
+  function abrirClientes(frase, frase2, recordar, silencioso) {
+    if (!frase) { if (!silencioso) flash($("msgEqDir"), "Escribí la clave.", true); return Promise.resolve(); }
+    $("eqUnlock").disabled = true;
+
+    return leerClientes().then(function (a) {
+      if (!a) {
+        if ($("eqKey2Wrap").hidden) { mostrarCandado(true); throw new Error("Repetí la clave para crearla."); }
+        if (frase.length < 8) throw new Error("Usá una clave de al menos 8 caracteres.");
+        if (frase !== frase2) throw new Error("Las dos claves no coinciden.");
+        if (!ghReady($("msgEqDir"))) throw new Error("Conectá la consola con GitHub para crear la clave.");
+        clientes.sal = crypto.getRandomValues(new Uint8Array(16));
+        return derivarClave(frase, clientes.sal).then(function (k) {
+          clientes.clave = k;
+          return guardarClientes(function () {}, "Datos de clientes: se crea el archivo cifrado");
+        });
+      }
+      clientes.sal = b64aBytes(a.doc.sal);
+      return derivarClave(frase, clientes.sal).then(function (k) {
+        return descifrarClientes(a.doc, k).then(function (mapa) {
+          clientes.clave = k; clientes.mapa = mapa;
+        }, function () { throw new Error("La clave no es correcta."); });
+      });
+    }).then(function () {
+      clientes.abierto = true;
+      try {
+        if (recordar) localStorage.setItem("otv_clientes_clave", frase);
+        else localStorage.removeItem("otv_clientes_clave");
+      } catch (e) { /* sin almacenamiento */ }
+      $("eqKey").value = ""; $("eqKey2").value = "";
+      $("eqLock").hidden = true; $("eqDir").hidden = false;
+      if (eq.code) { $("eqName").value = nombreDe(eq.code); $("eqNote").value = (clientes.mapa[eq.code] && clientes.mapa[eq.code].nota) || ""; }
+      renderEquipoRecientes();
+      return listarPublicados().then(renderDirectorio, renderDirectorio).then(migrarNombresLocales);
+    }, function (e) {
+      if (!silencioso) flash($("msgEqDir"), e.message, true);
+      else mostrarCandado(false);
+    }).then(function () { $("eqUnlock").disabled = false; });
+  }
+
+  /* Los nombres que se habian cargado antes, solo en este navegador. */
+  function migrarNombresLocales() {
+    var loc = nombresEquipos();
+    var faltan = Object.keys(loc).filter(function (c) { return !clientes.mapa[c] && loc[c]; });
+    if (!faltan.length || !ghToken) return;
+    return guardarClientes(function (mapa) {
+      faltan.forEach(function (c) { if (!mapa[c]) mapa[c] = { nombre: loc[c], nota: "", actualizado: stamp(new Date()) }; });
+    }, "Datos de clientes: se suman los nombres guardados en el navegador").then(function () {
+      local("otv_equipos_nombres", {});
+      renderDirectorio(); renderEquipoRecientes();
+    }, function () { /* se reintenta la proxima vez */ });
+  }
+
+  function listarPublicados() {
+    return ghApi("/repos/" + gh.owner + "/" + gh.repo + "/contents/equipos?ref=" +
+      encodeURIComponent(gh.branch) + "&t=" + Date.now()).then(function (lista) {
+      clientes.publicados = {};
+      (Array.isArray(lista) ? lista : []).forEach(function (f) {
+        var m = /^([0-9A-Z]{6})\.json$/.exec(f.name);
+        if (m) clientes.publicados[m[1]] = 1;
+      });
+    }, function (e) {
+      if (e.status === 404) { clientes.publicados = {}; return; }
+      throw e;
+    });
+  }
+
+  function renderDirectorio() {
+    var box = $("eqDirList");
+    box.textContent = "";
+    var codigos = {};
+    Object.keys(clientes.mapa).forEach(function (c) { codigos[c] = 1; });
+    Object.keys(clientes.publicados).forEach(function (c) { codigos[c] = 1; });
+    (local("otv_equipos_recientes") || []).forEach(function (c) { codigos[c] = 1; });
+
+    var filtro = $("eqFilter").value.trim().toLowerCase();
+    var lista = Object.keys(codigos).map(function (c) {
+      var d = clientes.mapa[c] || {};
+      return { c: c, nombre: d.nombre || "", nota: d.nota || "" };
+    }).filter(function (x) {
+      if (!filtro) return true;
+      return (x.nombre + " " + x.nota + " " + x.c + " " + codigoVisible(x.c)).toLowerCase().indexOf(filtro) >= 0;
+    }).sort(function (a, b) {
+      return (a.nombre || "~" + a.c).localeCompare(b.nombre || "~" + b.c, "es");
+    });
+
+    $("eqDirCount").textContent = Object.keys(codigos).length ? Object.keys(codigos).length + " equipos" : "";
+
+    if (!lista.length) {
+      var p = document.createElement("p"); p.className = "hint";
+      p.textContent = filtro ? "Ningún equipo coincide." : "Todavía no hay equipos. Abrí uno por su código y guardá los datos del cliente.";
+      box.appendChild(p);
+    }
+
+    lista.forEach(function (x) {
+      var row = document.createElement("div"); row.className = "app";
+      var info = document.createElement("div");
+      var b = document.createElement("b"); b.textContent = x.nombre || "Sin cliente asignado"; info.appendChild(b);
+      var meta = document.createElement("span"); meta.className = "meta";
+      meta.textContent = codigoVisible(x.c) + (x.nota ? " · " + x.nota : "");
+      info.appendChild(meta);
+      if (clientes.publicados[x.c]) {
+        var chips = document.createElement("div"); chips.className = "chips";
+        var s = document.createElement("span"); s.className = "chip ok"; s.textContent = "con aviso o apps propias";
+        chips.appendChild(s); info.appendChild(chips);
+      }
+      row.appendChild(info);
+      var abrir = document.createElement("button");
+      abrir.className = "btn ghost small"; abrir.type = "button"; abrir.textContent = "Abrir";
+      abrir.addEventListener("click", function () { abrirEquipo(x.c); window.scrollTo({ top: 0, behavior: "smooth" }); });
+      row.appendChild(abrir);
+      box.appendChild(row);
+    });
+  }
+
+  function guardarDatosCliente() {
+    if (!eq.code) return;
+    if (!clientes.abierto) { flash($("msgEqName"), "Primero poné la clave en «Mis equipos».", true); return; }
+    if (!ghReady($("msgEqName"))) return;
+    var c = eq.code, nombre = $("eqName").value.trim(), nota = $("eqNote").value.trim();
+    $("eqNameSave").disabled = true;
+    guardarClientes(function (mapa) {
+      if (nombre || nota) mapa[c] = { nombre: nombre, nota: nota, actualizado: stamp(new Date()) };
+      else delete mapa[c];
+    }, "Datos de clientes actualizados (cifrados)").then(function () {
+      flash($("msgEqName"), nombre || nota ? "Guardado, cifrado en GitHub." : "Datos del cliente borrados.");
+      renderDirectorio(); renderEquipoRecientes();
+    }, function (e) {
+      flash($("msgEqName"), e.message, true);
+    }).then(function () { $("eqNameSave").disabled = false; });
+  }
+
+  function buildEquipo() {
+    var doc = {};
+    if ($("eqNOn").checked) {
+      doc.notice_enabled = true;
+      doc.notice_level = eq.level;
+      doc.notice_id = eq.noticeId || ("aviso-" + eq.code.toLowerCase() + "-" + freshId().slice(6));
+      doc.notice_title = $("eqNTitle").value.trim() || "AVISO IMPORTANTE";
+      doc.notice_text = $("eqNText").value.trim();
+      doc.notice_updated = stamp(new Date());
+      doc.notice_until = eq.hours ? stamp(new Date(Date.now() + eq.hours * 3600000)) : (eq.keepUntil || "");
+      doc.notice_show_once = $("eqNOnce").checked;
+    } else {
+      doc.notice_enabled = false;
+    }
+    if (eq.apps.length) doc.apps = eq.apps;
+    /* Campos que no maneja la consola se preservan tal cual. */
+    Object.keys(eq.base || {}).forEach(function (k) {
+      if (k.indexOf("notice_") !== 0 && k !== "apps") doc[k] = eq.base[k];
+    });
+    return doc;
+  }
+
+  function validateEquipo(d) {
+    var errors = [], warnings = [];
+    var s = validateStatus(d);
+    errors = errors.concat(s.errors); warnings = warnings.concat(s.warnings);
+    if (d.apps) {
+      var a = validateApps({ apps: d.apps });
+      errors = errors.concat(a.errors); warnings = warnings.concat(a.warnings);
+    }
+    if (!d.notice_enabled && !d.apps) {
+      warnings.push(eq.existed
+        ? "No le queda nada propio. Conviene «Borrar lo propio de este equipo» en vez de publicar un archivo vacío."
+        : "Todavía no le pusiste nada propio: no hay nada que publicar.");
+    }
+    return { errors: errors, warnings: warnings };
+  }
+
+  function renderEquipo() {
+    if (!eq.code) return;
+    var d = buildEquipo();
+    var r = validateEquipo(d);
+    renderChecks($("eqChecks"), r);
+    $("eqOut").textContent = JSON.stringify(d, null, 2);
+    $("eqOutTitle").textContent = rutaEquipo(eq.code);
+    $("eqPublish").disabled = r.errors.length > 0 || (!d.notice_enabled && !d.apps);
+    $("eqCopy").disabled = r.errors.length > 0;
+    $("eqDelete").disabled = !eq.existed;
+    $("eqNForm").hidden = !$("eqNOn").checked;
+    $("eqState").textContent = eq.existed
+      ? "Tiene un archivo propio publicado."
+      : "Sin archivo propio: usa el aviso y el catálogo generales.";
+    $("eqNDurHint").textContent = !d.notice_enabled ? "" : d.notice_until
+      ? "Se va solo el " + d.notice_until + "."
+      : "No vence. Para sacarlo, destildá «Mostrar un aviso propio» y publicá.";
+    $("eqPending").hidden = !eq.pending;
+    if (eq.pending) $("eqPendingName").textContent = eq.pending.name + " (" + peso(eq.pending.file.size) + ")";
+  }
+
+  function renderEqApps() {
+    var box = $("eqApps");
+    box.textContent = "";
+    $("eqAppsEmpty").hidden = eq.apps.length > 0;
+
+    eq.apps.forEach(function (a, i) {
+      var row = document.createElement("div");
+      row.className = "app";
+      var info = document.createElement("div");
+      var b = document.createElement("b"); b.textContent = a.name; info.appendChild(b);
+      var meta = document.createElement("span"); meta.className = "meta";
+      meta.textContent = a.package + " · v" + a.version;
+      info.appendChild(meta);
+      var chips = document.createElement("div"); chips.className = "chips";
+      function chip(t, c) { var s = document.createElement("span"); s.className = "chip " + (c || ""); s.textContent = t; chips.appendChild(s); }
+      var enCatalogo = state.apps.apps.some(function (g) { return g.package === a.package; });
+      if (a.remove) chip("DE BAJA SOLO ACÁ", "bad");
+      else chip(enCatalogo ? "otra versión solo acá" : "solo en este equipo", "ok");
+      if (a.package === PAQUETE_LAUNCHER) chip("el sistema", "warn");
+      if (a.uninstall_first) chip("desinstala primero", "warn");
+      if (eq.pending && eq.pending.pkg === a.package) chip("APK por subir", "warn");
+      info.appendChild(chips);
+      row.appendChild(info);
+
+      var quitar = document.createElement("button");
+      quitar.className = "btn ghost small"; quitar.type = "button";
+      quitar.textContent = a.remove ? "Reactivar acá" : "Quitar";
+      quitar.addEventListener("click", function () {
+        eq.apps.splice(i, 1);
+        if (eq.pending && eq.pending.pkg === a.package) eq.pending = null;
+        renderEqApps(); renderEquipo();
+      });
+      row.appendChild(quitar);
+      box.appendChild(row);
+    });
+
+    var sel = $("eqRemoveSel");
+    sel.textContent = "";
+    state.apps.apps.forEach(function (g) {
+      if (g.package === PAQUETE_LAUNCHER || g.remove) return;
+      if (eq.apps.some(function (a) { return a.package === g.package; })) return;
+      var o = document.createElement("option");
+      o.value = g.package; o.textContent = g.name;
+      sel.appendChild(o);
+    });
+    $("eqRemoveAdd").disabled = !sel.options.length;
+  }
+
+  function eqDarDeBaja() {
+    var pkg = $("eqRemoveSel").value;
+    var g = state.apps.apps.filter(function (x) { return x.package === pkg; })[0];
+    if (!g) return;
+    eq.apps.push({ id: g.id, name: g.name, package: g.package, version: g.version, remove: true });
+    renderEqApps(); renderEquipo();
+    flash($("msgEqApps"), "«" + g.name + "» se va a quitar solo de este equipo cuando publiques.");
+  }
+
+  function eqOnApk(file) {
+    if (!eq.code) return;
+    flash($("msgEqApps"), "Leyendo la APK…");
+    readApk(file).then(function (info) {
+      var m = info.manifest || {};
+      eq.info = info;
+      var pkg = m.pkg || "", ver = m.versionName || "";
+      var g = state.apps.apps.filter(function (x) { return x.package === pkg; })[0];
+      $("eqFPkg").textContent = pkg || "no se pudo leer";
+      $("eqFVer").textContent = ver ? ver + (m.versionCode ? " (" + m.versionCode + ")" : "") : "no se pudo leer";
+      $("eqFSize").textContent = peso(info.size);
+      $("eqAName").value = g ? g.name : "";
+      var cat = $("eqACat"); cat.textContent = "";
+      categories().forEach(function (c) {
+        var o = document.createElement("option"); o.value = c; o.textContent = c; cat.appendChild(o);
+      });
+      if (g && g.category) cat.value = g.category;
+      /* Con el codigo en el nombre nunca pisa una APK del catalogo general. */
+      $("eqAFile").value = slug((g && g.name) || pkg.split(".").pop() || "app") + "-" + (ver || "version") + "-" + eq.code + ".apk";
+      var launcher = pkg === PAQUETE_LAUNCHER;
+      $("eqAUninst").checked = false;
+      $("eqAUninst").disabled = launcher;
+      $("eqApkForm").hidden = false;
+      flash($("msgEqApps"), pkg && ver ? "APK leída. Revisá los datos y agregala." : "No se pudo leer todo de la APK.", !(pkg && ver));
+    }, function (e) {
+      flash($("msgEqApps"), "No se pudo leer el archivo: " + (e && e.message), true);
+    });
+  }
+
+  function eqAgregarApk() {
+    var info = eq.info;
+    if (!info) return;
+    var m = info.manifest || {};
+    var pkg = m.pkg || "", ver = m.versionName || "";
+    var name = $("eqAName").value.trim(), file = $("eqAFile").value.trim();
+    if (!RE_PKG.test(pkg)) { flash($("msgEqApps"), "No se pudo leer el paquete de la APK.", true); return; }
+    if (!RE_VERSION.test(ver)) { flash($("msgEqApps"), "La versión de la APK tiene que ser solo números y puntos.", true); return; }
+    if (!name) { flash($("msgEqApps"), "Poné un nombre visible.", true); return; }
+    if (!/^[A-Za-z0-9._-]+\.apk$/.test(file)) { flash($("msgEqApps"), "Corregí el nombre del archivo.", true); return; }
+    var ruta = gh.folder + "/" + file;
+    var pisa = state.apps.apps.some(function (g) { return rutaDeApk(g.apk) === ruta; });
+    if (pisa) { flash($("msgEqApps"), "Ese nombre de archivo lo usa el catálogo general. Elegí otro.", true); return; }
+
+    var g = state.apps.apps.filter(function (x) { return x.package === pkg; })[0];
+    var entry = {
+      id: (g && g.id) || slug(name).replace(/\./g, "-"),
+      name: name,
+      description: (g && g.description) || "",
+      package: pkg,
+      version: ver,
+      apk: apkBase() + file,
+      category: $("eqACat").value || "",
+      recommended: false,
+      required: !!(g && g.required),
+      sha256: info.sha256
+    };
+    if ($("eqAUninst").checked && pkg !== PAQUETE_LAUNCHER) entry.uninstall_first = true;
+
+    eq.apps = eq.apps.filter(function (a) { return a.package !== pkg; });
+    eq.apps.push(entry);
+    eq.pending = { name: file, file: info.file, pkg: pkg };
+    eq.info = null;
+    $("eqApkForm").hidden = true;
+    $("eqApkFile").value = "";
+    renderEqApps(); renderEquipo();
+    flash($("msgEqApps"), "«" + name + "» agregada a este equipo. Publicá para que la reciba.");
+  }
+
+  function publishEquipo() {
+    var d = buildEquipo();
+    var r = validateEquipo(d);
+    if (r.errors.length) { flash($("msgEq"), "Corregí los errores antes de publicar.", true); return; }
+    if (!ghReady($("msgEq"))) return;
+
+    var ruta = rutaEquipo(eq.code);
+    $("eqLog").textContent = "";
+    $("eqPublish").disabled = true;
+    var pendiente = eq.pending;
+    var cadena = Promise.resolve();
+
+    if (pendiente) {
+      cadena = cadena.then(function () {
+        var s1 = logStep("eqLog", "Subiendo " + pendiente.name + " (" + peso(pendiente.file.size) + ")\u2026");
+        $("eqBar").hidden = false; setBar("eqBar", 0);
+        return ghUploadApk(pendiente.name, pendiente.file, null, function (p) { setBar("eqBar", p); })
+          .then(function () {
+            $("eqBar").hidden = true; s1.ok(pendiente.name + " subida.");
+            eq.pending = null;
+          }, function (e) {
+            $("eqBar").hidden = true; s1.err("No se pudo subir la APK: " + e.message);
+            throw e;
+          });
+      });
+    }
+
+    cadena.then(function () {
+      if (!d.apps) return;
+      var s2 = logStep("eqLog", "Revisando que las APK del equipo estén subidas\u2026");
+      return ghApkFolder().then(function (hay) {
+        var faltan = [];
+        d.apps.forEach(function (a) {
+          if (a.remove) return;
+          var rta = rutaDeApk(a.apk);
+          if (rta && !hay[rta.slice(gh.folder.length + 1)]) faltan.push(a.name);
+        });
+        if (faltan.length) throw new Error("Faltan subir las APK de: " + faltan.join(", ") + ".");
+        s2.ok("Todas las APK del equipo están subidas.");
+      }).then(null, function (e) { s2.err(e.message); throw e; });
+    }).then(function () {
+      var s3 = logStep("eqLog", "Publicando " + ruta + "\u2026");
+      return ghCommitJson(ruta, d, "Equipo " + codigoVisible(eq.code) + " desde la consola", s3);
+    }).then(function () {
+      eq.base = d; eq.existed = true;
+      eq.noticeId = d.notice_id || "";
+      eq.keepUntil = d.notice_until || "";
+      eq.hours = 0; setSeg("eqNDur", 0);
+      flash($("msgEq"), "Publicado. En hasta 5 minutos el equipo lo toma.");
+    }, function (e) {
+      flash($("msgEq"), e.message, true);
+    }).then(function () {
+      renderEqApps(); renderEquipo();
+    });
+  }
+
+  function deleteEquipo() {
+    if (!eq.existed) return;
+    if (!window.confirm("Se borra lo propio del equipo " + codigoVisible(eq.code) + ": su aviso y sus apps. Vuelve a usar solo lo general.\n\nLas APK que se subieron solo para él quedan en GitHub.\n\n¿Borrar?")) return;
+    if (!ghReady($("msgEq"))) return;
+
+    var ruta = rutaEquipo(eq.code);
+    $("eqLog").textContent = "";
+    var s = logStep("eqLog", "Borrando " + ruta + "\u2026");
+    ghRead(ruta).then(function (actual) {
+      if (!actual) { s.ok(ruta + " ya no existía."); return; }
+      return ghApi("/repos/" + gh.owner + "/" + gh.repo + "/contents/" + ruta, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "Equipo " + codigoVisible(eq.code) + ": vuelve a lo general", sha: actual.sha, branch: gh.branch })
+      }).then(function () { s.ok(ruta + " borrado."); });
+    }).then(function () {
+      delete ghShas[ruta];
+      cargarEquipo(eq.code, {}, false);
+      flash($("msgEq"), "Borrado. En hasta 5 minutos el equipo vuelve a lo general.");
+    }, function (e) {
+      s.err(e.message);
+      flash($("msgEq"), e.message, true);
+    });
+  }
+
+  /* ============================================================ TELEVISOR */
+
+  function renderTV() {
+    var d = buildStatus();
+    var bg = $("tvBg");
+    if (state.imgUrl) { bg.src = state.imgUrl; } else { bg.removeAttribute("src"); }
+    $("tvClock").textContent = stamp(new Date()).replace(" ", "   ");
+
+    var show = d.notice_enabled && d.notice_text;
+    $("tvNotice").hidden = !show;
+    var names = { red: "INCIDENCIA DEL SERVICIO", yellow: "AVISO DEL SERVICIO", green: "INFORMACIÓN" };
+    var colors = { red: "#FF7A6B", yellow: "#FFD740", green: "#5ADC6E" };
+    $("tvLv").textContent = names[d.notice_level] || names.yellow;
+    $("tvLv").style.color = colors[d.notice_level] || colors.yellow;
+    $("tvTitle").textContent = d.notice_title;
+    $("tvText").textContent = d.notice_text;
+    $("tvDate").textContent = d.notice_updated;
+
+    $("tvNote").textContent = show
+      ? "El panel ocupa el área a la derecha del menú, con el nivel en color."
+      : "Sin aviso activo: el área de la derecha queda libre y se ve el fondo.";
+  }
+
+  function mountTV(slotId) {
+    var node = $("tvHome");
+    node.hidden = false;
+    $(slotId).appendChild(node);
+    renderTV();
+  }
+
+  /* ============================================================ PESTAÑAS */
+
+  function showTab(name) {
+    Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
+      t.setAttribute("aria-selected", t.dataset.tab === name ? "true" : "false");
+    });
+    ["apps", "avisos", "fondos", "equipos"].forEach(function (n) { $("tab-" + n).hidden = n !== name; });
+    if (name === "equipos") renderEqApps();
+    if (name === "avisos") mountTV("tvSlotAvisos");
+    if (name === "fondos") mountTV("tvSlotFondos");
+    local("otv_tab", name);
+  }
+
+  /* ============================================================ EVENTOS */
+
+  function wireDrop(dropId, inputId, handler) {
+    var drop = $(dropId), input = $(inputId);
+    drop.addEventListener("click", function () { input.click(); });
+    drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+    input.addEventListener("change", function () { if (input.files[0]) handler(input.files[0]); });
+    ["dragenter", "dragover"].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add("over"); }); });
+    ["dragleave", "drop"].forEach(function (ev) { drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove("over"); }); });
+    drop.addEventListener("drop", function (e) { if (e.dataTransfer.files[0]) handler(e.dataTransfer.files[0]); });
+  }
+
+  function loadBase(textareaId, name, msgEl, validator, after) {
+    try {
+      var parsed = JSON.parse($(textareaId).value);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("no es un objeto");
+      if (validator) {
+        var r = validator(parsed);
+        if (r.errors.length) throw new Error(r.errors[0]);
+      }
+      after(parsed);
+      persist(name, parsed);
+      flash(msgEl, "Listo, la consola trabaja sobre ese archivo.");
+    } catch (e) {
+      flash(msgEl, "Ese texto no sirve: " + e.message, true);
+    }
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
+    t.addEventListener("click", function () { showTab(t.dataset.tab); });
+  });
+
+  wireDrop("apkDrop", "apkFile", onApk);
+  ["aPkg", "aVer"].forEach(function (id) { $(id).addEventListener("input", refreshVerdict); });
+  $("aFile").addEventListener("input", renderFileHint);
+  $("aAdd").addEventListener("click", addPending);
+  $("aCancel").addEventListener("click", discardPending);
+  $("appsCopy").addEventListener("click", function () { copyText($("appsOut").textContent, $("msgApps")); });
+  $("appsLoad").addEventListener("click", function () {
+    loadBase("appsBase", "apps", $("msgApps"), validateApps, function (p) { state.apps = p; renderCatalog(); renderAppsOut(); });
+  });
+
+  Array.prototype.forEach.call($("nLevel").querySelectorAll("button"), function (b) {
+    b.addEventListener("click", function () { setLevel(b.dataset.v); renderStatus(); });
+  });
+  Array.prototype.forEach.call($("nDur").querySelectorAll("button"), function (b) {
+    b.addEventListener("click", function () {
+      state.hoursPicked = true; state.keepUntil = "";
+      setHours(Number(b.dataset.v)); renderStatus();
+    });
+  });
+  ["nTitle", "nText", "sMsg", "nId"].forEach(function (id) { $(id).addEventListener("input", renderStatus); });
+  ["nOn", "nOnce", "sOnline"].forEach(function (id) { $(id).addEventListener("change", renderStatus); });
+  $("nOff").addEventListener("click", function () {
+    $("nOn").checked = false; renderStatus();
+    flash($("msgStatus"), "Aviso apagado. Copiá el status.json y publicalo para que desaparezca.");
+    $("statusOut").scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+  $("presetSave").addEventListener("click", function () {
+    var t = $("nTitle").value.trim(), x = $("nText").value.trim();
+    if (!t || !x) { flash($("msgStatus"), "Escribí título y mensaje antes de guardarla.", true); return; }
+    var p = { id: "c" + Date.now(), level: state.level, title: t, text: x, custom: true };
+    state.presets.push(p); local("otv_presets", state.presets);
+    if (db) db.doc("presets/" + p.id).set(p).catch(function () {});
+    renderPresets(); flash($("msgStatus"), "Frase guardada.");
+  });
+  $("statusCopy").addEventListener("click", function () { copyText($("statusOut").textContent, $("msgStatus")); });
+  $("statusLoad").addEventListener("click", function () {
+    loadBase("statusBase", "status", $("msgStatus"), null, function (p) { state.statusBase = p; renderStatus(); });
+  });
+
+  wireDrop("imgDrop", "imgFile", onImage);
+  $("iName").addEventListener("input", renderConfig);
+  $("iReset").addEventListener("click", function () {
+    $("iName").value = "default.png"; state.imgBlob = null;
+    if (state.imgUrl) URL.revokeObjectURL(state.imgUrl); state.imgUrl = "";
+    $("iDownload").disabled = true; $("iOrig").textContent = "—"; $("iOpt").textContent = "—";
+    renderConfig(); flash($("msgImg"), "Vuelve al fondo incluido en la aplicación.");
+  });
+  $("iDownload").addEventListener("click", function () {
+    if (!state.imgBlob) return;
+    if (!window.claude || !window.claude.use) {
+      /* Fuera de Claude alcanza con un enlace de descarga comun. */
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(state.imgBlob);
+      a.download = $("iName").value.trim() || "fondo.jpg";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 10000);
+      flash($("msgImg"), "Descargada.");
+      return;
+    }
+    window.claude.use("downloads").then(function (dl) {
+      if (!dl) { flash($("msgImg"), "La descarga no está disponible en esta vista.", true); return; }
+      dl.save({ filename: $("iName").value.trim() || "fondo.jpg", data: state.imgBlob }).then(function () {
+        flash($("msgImg"), "Descargada. Subila a la carpeta backgrounds/.");
+      }, function (e) {
+        if (e && e.code === "declined") return;
+        flash($("msgImg"), "No se pudo descargar: " + ((e && e.message) || "error"), true);
+      });
+    });
+  });
+  $("configCopy").addEventListener("click", function () { copyText($("configOut").textContent, $("msgConfig")); });
+  $("configLoad").addEventListener("click", function () {
+    loadBase("configBase", "config", $("msgConfig"), null, function (p) { state.configBase = p; $("iName").value = (p.system && p.system.background) || "default.png"; renderConfig(); });
+  });
+
+  $("ghPill").addEventListener("click", openGh);
+  $("ghClose").addEventListener("click", function () { readGhForm(); $("ghPanel").hidden = true; });
+  $("ghPanel").addEventListener("click", function (e) { if (e.target === $("ghPanel")) { readGhForm(); $("ghPanel").hidden = true; } });
+  $("ghTest").addEventListener("click", ghTest);
+  $("ghPull").addEventListener("click", ghPull);
+  $("ghForget").addEventListener("click", function () {
+    ghToken = ""; $("ghToken").value = "";
+    try { localStorage.removeItem("otv_gh_token"); } catch (e) { /* sin almacenamiento */ }
+    ghShas = {}; renderGh();
+    flash($("msgGh"), "Token borrado de este dispositivo.");
+  });
+  $("appsPublish").addEventListener("click", publishApps);
+  $("statusPublish").addEventListener("click", publishStatus);
+  $("configPublish").addEventListener("click", publishConfig);
+
+  $("eqOpen").addEventListener("click", function () { abrirEquipo($("eqCode").value); });
+  $("eqCode").addEventListener("keydown", function (e) { if (e.key === "Enter") abrirEquipo($("eqCode").value); });
+  $("eqNameSave").addEventListener("click", guardarDatosCliente);
+  $("eqUnlock").addEventListener("click", function () {
+    abrirClientes($("eqKey").value, $("eqKey2").value, $("eqKeyRemember").checked, false);
+  });
+  $("eqKey").addEventListener("keydown", function (e) { if (e.key === "Enter") $("eqUnlock").click(); });
+  $("eqKey2").addEventListener("keydown", function (e) { if (e.key === "Enter") $("eqUnlock").click(); });
+  $("eqFilter").addEventListener("input", renderDirectorio);
+  $("eqDirReload").addEventListener("click", function () {
+    leerClientes().then(function (a) {
+      if (!a) return;
+      return descifrarClientes(a.doc, clientes.clave).then(function (m) { clientes.mapa = m; });
+    }).then(listarPublicados).then(function () {
+      renderDirectorio(); renderEquipoRecientes();
+      flash($("msgEqDir"), "Lista actualizada.");
+    }, function (e) { flash($("msgEqDir"), e.message, true); });
+  });
+  $("eqLockAgain").addEventListener("click", function () {
+    clientes.clave = null; clientes.sal = null; clientes.mapa = {}; clientes.abierto = false;
+    try { localStorage.removeItem("otv_clientes_clave"); } catch (e) { /* sin almacenamiento */ }
+    mostrarCandado(false);
+    $("eqName").value = eq.code ? nombreDe(eq.code) : ""; $("eqNote").value = "";
+    renderEquipoRecientes();
+    flash($("msgEqDir"), "Clave olvidada en este dispositivo.");
+  });
+  Array.prototype.forEach.call($("eqNLevel").querySelectorAll("button"), function (b) {
+    b.addEventListener("click", function () { eq.level = b.dataset.v; setSeg("eqNLevel", eq.level); renderEquipo(); });
+  });
+  Array.prototype.forEach.call($("eqNDur").querySelectorAll("button"), function (b) {
+    b.addEventListener("click", function () { eq.hours = Number(b.dataset.v); eq.keepUntil = ""; setSeg("eqNDur", eq.hours); renderEquipo(); });
+  });
+  ["eqNTitle", "eqNText"].forEach(function (id) {
+    /* Un texto nuevo es un aviso nuevo: el equipo tiene que distinguirlo. */
+    $(id).addEventListener("input", function () { eq.noticeId = ""; renderEquipo(); });
+  });
+  $("eqNOn").addEventListener("change", function () { if ($("eqNOn").checked) eq.noticeId = ""; renderEquipo(); });
+  $("eqNOnce").addEventListener("change", renderEquipo);
+  $("eqRemoveAdd").addEventListener("click", eqDarDeBaja);
+  wireDrop("eqApkDrop", "eqApkFile", eqOnApk);
+  $("eqAAdd").addEventListener("click", eqAgregarApk);
+  $("eqACancel").addEventListener("click", function () { eq.info = null; $("eqApkForm").hidden = true; $("eqApkFile").value = ""; });
+  $("eqPublish").addEventListener("click", publishEquipo);
+  $("eqCopy").addEventListener("click", function () { copyText($("eqOut").textContent, $("msgEq")); });
+  $("eqDelete").addEventListener("click", deleteEquipo);
+
+  /* ============================================================ ARRANQUE */
+
+  function boot() {
+    var guardado = local("otv_gh");
+    if (guardado) {
+      gh.owner = guardado.owner || gh.owner;
+      gh.repo = guardado.repo || gh.repo;
+      gh.branch = guardado.branch || gh.branch;
+      gh.folder = guardado.folder || gh.folder;
+    }
+    try { ghToken = localStorage.getItem("otv_gh_token") || ""; } catch (e) { ghToken = ""; }
+
+    state.apps = local("otv_apps") || state.apps;
+    state.statusBase = local("otv_status") || state.statusBase;
+    state.configBase = local("otv_config") || state.configBase;
+    state.presets = local("otv_presets") || [];
+
+    $("appsBase").value = JSON.stringify(state.apps, null, 2);
+    $("statusBase").value = JSON.stringify(state.statusBase, null, 2);
+    $("configBase").value = JSON.stringify(state.configBase, null, 2);
+    $("iName").value = (state.configBase.system && state.configBase.system.background) || "default.png";
+    $("sMsg").value = "Servicio funcionando correctamente.";
+    $("nId").value = freshId();
+
+    var d = local("otv_draft_notice");
+    if (d) {
+      state.hoursPicked = !!d.hoursPicked;
+      setLevel(d.level || "green");
+      if (state.hoursPicked) setHours(Number(d.hours) || 0);
+      $("nOn").checked = d.on !== false; $("nTitle").value = d.title || ""; $("nText").value = d.text || ""; $("nOnce").checked = !!d.once;
+    } else {
+      setLevel("green");
+      $("nTitle").value = PRESETS[2].title; $("nText").value = PRESETS[2].text; $("nOnce").checked = true;
+    }
+
+    renderCatalog(); renderAppsOut();
+    renderPresets(); renderStatus(); renderConfig();
+    renderUploadStrip(); renderGh(); ghProbe();
+    renderEquipoRecientes();
+    var claveGuardada = "";
+    try { claveGuardada = localStorage.getItem("otv_clientes_clave") || ""; } catch (e) { claveGuardada = ""; }
+    if (claveGuardada) abrirClientes(claveGuardada, "", true, true);
+    showTab(local("otv_tab") || "apps");
+  }
+
+  boot();
+
+  if (window.claude && window.claude.use) {
+    window.claude.use("db").then(function (ns) {
+      if (!ns) return;
+      db = ns;
+      $("syncDot").className = "dot on";
+      $("syncText").textContent = "sincronizado";
+
+      [["apps", function (p) { state.apps = p; $("appsBase").value = JSON.stringify(p, null, 2); renderCatalog(); renderAppsOut(); }],
+       ["status", function (p) { state.statusBase = p; $("statusBase").value = JSON.stringify(p, null, 2); renderStatus(); }],
+       ["config", function (p) { state.configBase = p; $("configBase").value = JSON.stringify(p, null, 2); renderConfig(); }]
+      ].forEach(function (pair) {
+        db.doc("config/" + pair[0]).get().then(function (snap) {
+          if (!snap.exists) return;
+          var v = snap.data() || {};
+          try { if (v.json) { var p = JSON.parse(v.json); local("otv_" + pair[0], p); pair[1](p); } } catch (e) { /* guardado ilegible */ }
+        }, function () {});
+      });
+
+      db.collection("presets").onSnapshot(function (snap) {
+        state.presets = snap.docs.map(function (doc) {
+          var v = doc.data() || {};
+          return { id: doc.id, level: v.level || "yellow", title: v.title || "", text: v.text || "", custom: true };
+        });
+        local("otv_presets", state.presets);
+        renderPresets();
+      }, function () {});
+    }, function () {});
+  }
+})();
+</script>
