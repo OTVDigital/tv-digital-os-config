@@ -7,24 +7,21 @@
       "description": "Canales en vivo",
       "package": "com.example.tvplusdos",
       "version": "1.9",
-      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/tvplus2-v1.9.apk",
+      "apk": "",
       "category": "tv",
       "recommended": false,
-      "required": true,
-      "sha256": "1beb0d722675528cb9f05df10c38f28671c5e2ccd91a33ab6c339a13a9454eb0"
+      "required": true
     },
     {
       "id": "series",
       "name": "Series",
       "description": "Películas y series",
       "package": "com.android.mgstxNF",
-      "version": "4.34.8",
-      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/XuperTv-N0F4C3-ConR-v4.34.8.apk",
+      "version": "6.72.1",
+      "apk": "",
       "category": "series",
       "recommended": false,
-      "required": true,
-      "sha256": "6c25d01d5c120e518e5a60d9f246862f7dc20d2fc65a6424acb32d89b9dc3eb2",
-      "uninstall_first": true
+      "required": true
     },
     {
       "id": "videos",
@@ -32,11 +29,10 @@
       "description": "Videos en línea",
       "package": "org.smarttube.stable",
       "version": "31.94",
-      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/smarttube_stable.apk",
+      "apk": "",
       "category": "videos",
       "recommended": false,
-      "required": false,
-      "sha256": "a56d1685b4fce55b47a58ecc8dae485cd1c183e60ff47cdab398ce4a0ae86f18"
+      "required": true
     },
     {
       "id": "youtube",
@@ -50,16 +46,16 @@
       "required": false
     },
     {
-      "id": "otv-digital-os",
-      "name": "OTV Digital OS",
-      "description": "Sistema del equipo",
+      "id": "sistema",
+      "name": "sistema",
+      "description": "Sistema operativo OTV",
       "package": "com.tvdigital.os",
-      "version": "1.0.16",
-      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/TVDigitalOS_v1.0.16.apk",
+      "version": "1.0.18",
+      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/TVDigitalOS_v1.0.18.apk",
       "category": "sistema",
       "recommended": false,
       "required": true,
-      "sha256": "83a0d12ede7242ec00df45f479721c1ea025c93f99bc8d94fab3f81b819f05e1"
+      "sha256": "a20866fa1b5e27cc4b09dd8ac9114754bbb57c6865d9e4cf0f17cfd486d23aaf"
     }
   ]
 }
