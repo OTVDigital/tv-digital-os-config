@@ -527,6 +527,41 @@ a{color:var(--accent)}
           </section>
 
           <section class="panel">
+            <h2>Credenciales de Series (autocompletado)</h2>
+            <div class="body">
+              <p class="hint">Si este cliente usa Series, cargá su usuario y contraseña. El equipo las completa solo cuando Series las pide, sin que el cliente escriba nada.</p>
+              <label class="field"><span>Clave del equipo</span><input type="text" id="eqSecret" spellcheck="false" autocomplete="off" placeholder="s:HZ0UCFN232" style="font-family:var(--mono)"></label>
+              <p class="hint">Es lo que muestra el box en Ajustes → Equipo OTV (mantené apretado OK), o lo que imprime el script al convertirlo. Con eso, solo este equipo puede leer sus credenciales.</p>
+              <div class="two">
+                <label class="field"><span>Usuario / correo de Series</span><input type="text" id="eqCredUser" spellcheck="false" autocomplete="off"></label>
+                <label class="field"><span>Contraseña de Series</span><input type="text" id="eqCredPass" spellcheck="false" autocomplete="off"></label>
+              </div>
+              <label class="field" id="eqCredMultiWrap"><span>Aplicar también a otros equipos (opcional)</span><input type="text" id="eqCredMulti" spellcheck="false" autocomplete="off" placeholder="Otros códigos separados por coma: G5E-KVB, TFX-N6V"></label>
+              <p class="hint">Cada uno se cifra con su propia clave de equipo, así que necesito la clave de cada uno. Si están guardadas (viste "Mis equipos"), las tomo solas; si no, pegámelas separadas por coma en el mismo orden.</p>
+              <label class="field" id="eqCredMultiSecretsWrap" hidden><span>Claves de esos equipos</span><input type="text" id="eqCredMultiSecrets" spellcheck="false" autocomplete="off" placeholder="s:AAA..., a:bbb..."></label>
+              <div class="row">
+                <button class="btn" id="eqCredSave" type="button">Guardar credenciales</button>
+                <button class="btn ghost" id="eqCredDel" type="button">Quitar de este equipo</button>
+              </div>
+              <div class="callout"><b>Cómo se guardan</b>Cifradas con la clave del propio equipo (AES-GCM). En GitHub queda un archivo que solo ese box puede abrir. Ni siquiera con tu clave de clientes se leen desde acá.</div>
+              <p class="msg" id="msgEqCred"></p>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2>Servicio del equipo</h2>
+            <div class="body">
+              <label class="toggle"><input type="checkbox" id="eqSusp"><span><b>Suspender este equipo</b><small>Para cuando el cliente deja de contratar el servicio.</small></span></label>
+              <div class="body" id="eqSuspForm" style="padding:0" hidden>
+                <label class="field"><span>Qué le aparece al cliente</span><textarea id="eqSuspMsg" maxlength="200" placeholder="El servicio de este equipo está suspendido. Comunicate con tu proveedor para reactivarlo."></textarea></label>
+                <p class="hint">Si lo dejás vacío, el equipo muestra ese texto.</p>
+              </div>
+              <div class="callout"><b>Qué deja de recibir</b>Actualizaciones de todas las aplicaciones (también las de OTV) y el autocompletado de Series. Lo que ya tiene instalado sigue funcionando: el equipo no se bloquea. Para reactivarlo, destildá y publicá de nuevo.</div>
+              <p class="hint">El equipo se entera en el próximo chequeo (hasta 6 horas, o al encenderlo). Una vez que se enteró, se acuerda aunque lo desconecten de internet.</p>
+            </div>
+          </section>
+
+          <section class="panel">
             <h2>Aviso solo para este equipo</h2>
             <div class="body">
               <label class="toggle"><input type="checkbox" id="eqNOn"><span><b>Mostrar un aviso propio</b><small>Mientras esté vigente, en este equipo reemplaza al aviso general.</small></span></label>
@@ -761,16 +796,25 @@ a{color:var(--accent)}
 
   /* ============================================================ BASES */
 
+  /*
+   * Plantilla de respaldo: solo se usa si este navegador todavía no tiene
+   * el catálogo guardado. Tiene que reflejar lo que hay publicado de
+   * verdad, porque si se publica tal cual NO debe romper nada. (Antes tenía
+   * una Series 6.72.1 inventada y los apk vacíos: publicarla borraba el
+   * catálogo bueno.) Igual, al conectar el token la consola baja el
+   * catálogo real y pisa esta plantilla.
+   */
   var APPS_DEFAULT = {"version":1,"apps":[
-    {"id":"tv","name":"TV Digital","description":"Canales en vivo","package":"com.example.tvplusdos","version":"1.9","apk":"","category":"tv","recommended":false,"required":true},
-    {"id":"series","name":"Series","description":"Películas y series","package":"com.android.mgstxNF","version":"6.72.1","apk":"","category":"series","recommended":false,"required":true},
-    {"id":"videos","name":"SmartTube","description":"Videos en línea","package":"org.smarttube.stable","version":"31.94","apk":"","category":"videos","recommended":false,"required":true},
-    {"id":"youtube","name":"YouTube","description":"Videos y entretenimiento","package":"com.google.android.youtube.tv","version":"2.05.03","apk":"https://github.com/OTVDigital/tv-digital-os-config/raw/refs/heads/main/apps/youtube-tv-v2.05.03.apk","category":"videos","recommended":true,"required":false}
+    {"id":"tv","name":"TV Digital","description":"Canales en vivo","package":"com.example.tvplusdos","version":"1.9","apk":"https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/tvplus2-v1.9.apk","category":"tv","recommended":false,"required":true,"sha256":"1beb0d722675528cb9f05df10c38f28671c5e2ccd91a33ab6c339a13a9454eb0"},
+    {"id":"series","name":"Series","description":"Películas y series","package":"com.android.mgstxNF","version":"4.34.8","apk":"https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/XuperTv-N0F4C3-ConR-v4.34.8.apk","category":"series","recommended":false,"required":true,"sha256":"6c25d01d5c120e518e5a60d9f246862f7dc20d2fc65a6424acb32d89b9dc3eb2","uninstall_first":true},
+    {"id":"videos","name":"SmartTube","description":"Videos en línea","package":"org.smarttube.stable","version":"31.94","apk":"https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/smarttube_stable.apk","category":"videos","recommended":false,"required":false,"sha256":"a56d1685b4fce55b47a58ecc8dae485cd1c183e60ff47cdab398ce4a0ae86f18"},
+    {"id":"youtube","name":"YouTube","description":"Videos y entretenimiento","package":"com.google.android.youtube.tv","version":"2.05.03","apk":"https://github.com/OTVDigital/tv-digital-os-config/raw/refs/heads/main/apps/youtube-tv-v2.05.03.apk","category":"videos","recommended":true,"required":false},
+    {"id":"otv-digital-os","name":"OTV Digital OS","description":"Sistema del equipo","package":"com.tvdigital.os","version":"1.0.19","apk":"https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/TVDigitalOS_v1.0.19.apk","category":"sistema","recommended":false,"required":true,"sha256":"4d5af8722575d24ad63979f22639edc594fba065a1ee8eced3453833ddfdda60"}
   ]};
 
   var STATUS_DEFAULT = {"apps":[
     {"package":"com.example.tvplusdos","name":"TV Digital","version":"1.7","description":"Televisión en vivo con canales nacionales, deportes, noticias y entretenimiento.","size":"42 MB","updated":"17/07/2026","recommended":true},
-    {"package":"com.android.mgstxNF","name":"Series y Películas","version":"6.72.1","description":"Aplicación de entretenimiento para disfrutar series y películas.","size":"38 MB","updated":"17/07/2026","recommended":true},
+    {"package":"com.android.mgstxNF","name":"Series y Películas","version":"4.34.8","description":"Aplicación de entretenimiento para disfrutar series y películas.","size":"38 MB","updated":"17/07/2026","recommended":true},
     {"package":"org.smarttube.stable","name":"Videos en Línea","version":"31.94","description":"Reproductor optimizado para acceder a videos en línea desde el TV Box.","size":"25 MB","updated":"17/07/2026","recommended":false}
   ]};
 
@@ -1732,7 +1776,14 @@ a{color:var(--accent)}
         });
       });
     }).then(function () {
-      flash($("msgGh"), "Todo en orden. Ya pod\u00e9s publicar desde la consola.");
+      /*
+       * Al conectar se baja SIEMPRE el cat\u00e1logo real de GitHub y se pisa
+       * lo que hubiera en este navegador. As\u00ed nunca se publica una copia
+       * vieja (o la plantilla de respaldo) por encima de lo bueno, que es
+       * justo lo que hab\u00eda pasado.
+       */
+      flash($("msgGh"), "Todo en orden. Traigo lo que hay publicado para trabajar sobre eso\u2026");
+      ghPull();
     }, function (e) {
       flash($("msgGh"), e.message, true);
     });
@@ -2224,6 +2275,13 @@ a{color:var(--accent)}
     $("eqTitle").textContent = codigoVisible(c);
     $("eqName").value = nombreDe(c);
     $("eqNote").value = (clientes.mapa[c] && clientes.mapa[c].nota) || "";
+    $("eqSecret").value = (clientes.mapa[c] && clientes.mapa[c].secreto) || "";
+    $("eqCredUser").value = ""; $("eqCredPass").value = "";
+    $("eqCredMulti").value = ""; $("eqCredMultiSecrets").value = "";
+    $("eqCredMultiSecretsWrap").hidden = true;
+    $("msgEqCred").textContent = "";
+    $("eqSusp").checked = !!doc.suspendido;
+    $("eqSuspMsg").value = doc.suspendido_mensaje || "";
     $("eqNOn").checked = !!doc.notice_enabled;
     $("eqNTitle").value = doc.notice_title || "";
     $("eqNText").value = doc.notice_text || "";
@@ -2282,6 +2340,107 @@ a{color:var(--accent)}
   function descifrarClientes(doc, clave) {
     return crypto.subtle.decrypt({ name: "AES-GCM", iv: b64aBytes(doc.iv) }, clave, b64aBytes(doc.datos))
       .then(function (buf) { return JSON.parse(new TextDecoder().decode(buf)) || {}; });
+  }
+
+  /* ------------------------------------------------- credenciales de Series
+     Usuario y contraseña de Series de cada equipo, cifrados con la clave
+     del propio equipo (su "s:SERIAL" o "a:ANDROID_ID"). Solo ese box las
+     abre; ni siquiera desde acá se leen. */
+
+  function rutaCredEquipo(c) { return "equipos/" + c + ".credenciales.json"; }
+
+  function cifrarCredenciales(secreto, usuario, clave) {
+    var sal = crypto.getRandomValues(new Uint8Array(16));
+    var iv = crypto.getRandomValues(new Uint8Array(12));
+    return derivarClave(secreto, sal).then(function (k) {
+      return crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, k,
+        new TextEncoder().encode(JSON.stringify({ usuario: usuario, clave: clave })));
+    }).then(function (buf) {
+      return {
+        nota: "Credenciales de Series cifradas para este equipo. Solo este box las abre. No editar a mano.",
+        formato: 1, cifrado: "AES-GCM", kdf: "PBKDF2-SHA256", iteraciones: ITERACIONES,
+        sal: bytesToB64(sal), iv: bytesToB64(iv), datos: bytesToB64(new Uint8Array(buf))
+      };
+    });
+  }
+
+  function publicarCredUno(codigo, secreto, usuario, clave) {
+    var ruta = rutaCredEquipo(codigo);
+    return cifrarCredenciales(secreto, usuario, clave).then(function (doc) {
+      return ghRead(ruta).then(function (actual) {
+        return ghPutFile(ruta, textToB64(JSON.stringify(doc, null, 2) + "\n"),
+          "Credenciales de Series de " + codigoVisible(codigo), actual ? actual.sha : null);
+      });
+    });
+  }
+
+  function guardarCredenciales() {
+    var secreto = ($("eqSecret").value || "").trim();
+    var usuario = ($("eqCredUser").value || "").trim();
+    var clave = $("eqCredPass").value || "";
+    if (!secreto) { flash($("msgEqCred"), "Falta la clave del equipo (la que muestra el box en Ajustes → Equipo OTV).", true); return; }
+    if (!usuario || !clave) { flash($("msgEqCred"), "Cargá el usuario y la contraseña de Series.", true); return; }
+    if (!ghReady($("msgEqCred"))) return;
+
+    var extraCodes = ($("eqCredMulti").value || "").split(",")
+      .map(function (s) { return normalizarCodigo(s); }).filter(Boolean)
+      .filter(function (c) { return c !== eq.code; });
+    var extraSecrets = ($("eqCredMultiSecrets").value || "").split(",")
+      .map(function (s) { return s.trim(); }).filter(Boolean);
+
+    var objetivos = [{ code: eq.code, secreto: secreto }];
+    var faltan = [];
+    extraCodes.forEach(function (c, i) {
+      var s = (clientes.mapa[c] && clientes.mapa[c].secreto) || extraSecrets[i] || "";
+      if (!s) faltan.push(codigoVisible(c));
+      objetivos.push({ code: c, secreto: s });
+    });
+    if (faltan.length) {
+      $("eqCredMultiSecretsWrap").hidden = false;
+      flash($("msgEqCred"), "Me falta la clave de: " + faltan.join(", ") + ". Pegalas separadas por coma, en el mismo orden.", true);
+      return;
+    }
+
+    $("eqCredSave").disabled = true;
+    flash($("msgEqCred"), "Guardando…");
+    var cadena = Promise.resolve();
+    objetivos.forEach(function (o) {
+      cadena = cadena.then(function () { return publicarCredUno(o.code, o.secreto, usuario, clave); });
+    });
+    cadena.then(function () {
+      if (clientes.abierto) {
+        return guardarClientes(function (mapa) {
+          objetivos.forEach(function (o) {
+            mapa[o.code] = mapa[o.code] || {};
+            mapa[o.code].secreto = o.secreto;
+          });
+        }, "Se recuerdan las claves de equipo").then(null, function () {});
+      }
+    }).then(function () {
+      $("eqCredSave").disabled = false;
+      var cuantos = objetivos.length;
+      flash($("msgEqCred"), cuantos > 1
+        ? ("Guardado en " + cuantos + " equipos. En hasta 5 minutos lo toman.")
+        : "Guardado. En hasta 5 minutos el equipo lo toma.");
+      $("eqCredPass").value = "";
+    }, function (e) {
+      $("eqCredSave").disabled = false;
+      flash($("msgEqCred"), e.message || "No se pudo guardar.", true);
+    });
+  }
+
+  function borrarCredenciales() {
+    if (!ghReady($("msgEqCred"))) return;
+    if (!window.confirm("¿Quitar las credenciales de Series de " + codigoVisible(eq.code) + "?\n\nEl equipo vuelve a pedirlas a mano.")) return;
+    var ruta = rutaCredEquipo(eq.code);
+    ghRead(ruta).then(function (actual) {
+      if (!actual) { flash($("msgEqCred"), "No había credenciales cargadas."); return; }
+      return ghApi("/repos/" + gh.owner + "/" + gh.repo + "/contents/" + ruta, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "Se quitan las credenciales de " + codigoVisible(eq.code), sha: actual.sha, branch: gh.branch })
+      }).then(function () { flash($("msgEqCred"), "Quitadas. En hasta 5 minutos el equipo deja de completarlas."); });
+    }).then(null, function (e) { flash($("msgEqCred"), e.message || "No se pudo quitar.", true); });
   }
 
   function leerClientes() {
@@ -2464,10 +2623,19 @@ a{color:var(--accent)}
     } else {
       doc.notice_enabled = false;
     }
+    /* Baja del servicio. Solo se escribe cuando está puesta: un
+       "suspendido": false en cada archivo sería ruido, y su ausencia ya
+       significa lo mismo. */
+    if ($("eqSusp").checked) {
+      doc.suspendido = true;
+      var m = $("eqSuspMsg").value.trim();
+      if (m) doc.suspendido_mensaje = m;
+    }
     if (eq.apps.length) doc.apps = eq.apps;
     /* Campos que no maneja la consola se preservan tal cual. */
     Object.keys(eq.base || {}).forEach(function (k) {
-      if (k.indexOf("notice_") !== 0 && k !== "apps") doc[k] = eq.base[k];
+      if (k.indexOf("notice_") !== 0 && k !== "apps" &&
+          k !== "suspendido" && k !== "suspendido_mensaje") doc[k] = eq.base[k];
     });
     return doc;
   }
@@ -2480,7 +2648,7 @@ a{color:var(--accent)}
       var a = validateApps({ apps: d.apps });
       errors = errors.concat(a.errors); warnings = warnings.concat(a.warnings);
     }
-    if (!d.notice_enabled && !d.apps) {
+    if (!d.notice_enabled && !d.apps && !d.suspendido) {
       warnings.push(eq.existed
         ? "No le queda nada propio. Conviene «Borrar lo propio de este equipo» en vez de publicar un archivo vacío."
         : "Todavía no le pusiste nada propio: no hay nada que publicar.");
@@ -2495,11 +2663,14 @@ a{color:var(--accent)}
     renderChecks($("eqChecks"), r);
     $("eqOut").textContent = JSON.stringify(d, null, 2);
     $("eqOutTitle").textContent = rutaEquipo(eq.code);
-    $("eqPublish").disabled = r.errors.length > 0 || (!d.notice_enabled && !d.apps);
+    $("eqPublish").disabled = r.errors.length > 0 || (!d.notice_enabled && !d.apps && !d.suspendido);
     $("eqCopy").disabled = r.errors.length > 0;
     $("eqDelete").disabled = !eq.existed;
     $("eqNForm").hidden = !$("eqNOn").checked;
-    $("eqState").textContent = eq.existed
+    $("eqSuspForm").hidden = !$("eqSusp").checked;
+    $("eqState").textContent = d.suspendido
+      ? "SUSPENDIDO. No recibe actualizaciones ni autocompletado."
+      : eq.existed
       ? "Tiene un archivo propio publicado."
       : "Sin archivo propio: usa el aviso y el catálogo generales.";
     $("eqNDurHint").textContent = !d.notice_enabled ? "" : d.notice_until
@@ -2882,6 +3053,8 @@ a{color:var(--accent)}
   $("eqOpen").addEventListener("click", function () { abrirEquipo($("eqCode").value); });
   $("eqCode").addEventListener("keydown", function (e) { if (e.key === "Enter") abrirEquipo($("eqCode").value); });
   $("eqNameSave").addEventListener("click", guardarDatosCliente);
+  $("eqCredSave").addEventListener("click", guardarCredenciales);
+  $("eqCredDel").addEventListener("click", borrarCredenciales);
   $("eqUnlock").addEventListener("click", function () {
     abrirClientes($("eqKey").value, $("eqKey2").value, $("eqKeyRemember").checked, false);
   });
@@ -2916,6 +3089,8 @@ a{color:var(--accent)}
     $(id).addEventListener("input", function () { eq.noticeId = ""; renderEquipo(); });
   });
   $("eqNOn").addEventListener("change", function () { if ($("eqNOn").checked) eq.noticeId = ""; renderEquipo(); });
+  $("eqSusp").addEventListener("change", renderEquipo);
+  $("eqSuspMsg").addEventListener("input", renderEquipo);
   $("eqNOnce").addEventListener("change", renderEquipo);
   $("eqRemoveAdd").addEventListener("click", eqDarDeBaja);
   wireDrop("eqApkDrop", "eqApkFile", eqOnApk);
