@@ -54,12 +54,12 @@
       "name": "OTV Digital OS",
       "description": "Sistema del equipo",
       "package": "com.tvdigital.os",
-      "version": "1.0.19",
-      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/TVDigitalOS_v1.0.19.apk",
+      "version": "1.0.21",
+      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/TVDigitalOS_v1.0.21.apk",
       "category": "sistema",
       "recommended": false,
       "required": true,
-      "sha256": "4d5af8722575d24ad63979f22639edc594fba065a1ee8eced3453833ddfdda60"
+      "sha256": "063775dc380eebec3f041969869275eba879168c0f7e1a77fd82c3a55f2a2681"
     }
   ]
 }
