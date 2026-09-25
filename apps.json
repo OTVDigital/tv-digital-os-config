@@ -44,10 +44,11 @@
       "description": "Videos y entretenimiento",
       "package": "com.google.android.youtube.tv",
       "version": "2.05.03",
-      "apk": "https://github.com/OTVDigital/tv-digital-os-config/raw/refs/heads/main/apps/youtube-tv-v2.05.03.apk",
+      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/youtube-tv-v2.05.03.apk",
       "category": "videos",
       "recommended": true,
-      "required": false
+      "required": false,
+      "sha256": "b0b7f1a9bc238b69b8d163c00ec723e8738ea5fd20ea2fe867948565543e1f28"
     },
     {
       "id": "otv-digital-os",
