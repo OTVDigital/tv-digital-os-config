@@ -31,12 +31,12 @@
       "name": "SmartTube",
       "description": "Videos en línea",
       "package": "org.smarttube.stable",
-      "version": "31.94",
-      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/smarttube_stable.apk",
+      "version": "32.56",
+      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/SmartTube_stable_32.56_armeabi-v7a.apk",
       "category": "videos",
       "recommended": false,
       "required": false,
-      "sha256": "a56d1685b4fce55b47a58ecc8dae485cd1c183e60ff47cdab398ce4a0ae86f18"
+      "sha256": "d2e9bc90b95aa6232fbf647e63003ccb9051d1aad53531c103aa997e443457b6"
     },
     {
       "id": "youtube",
