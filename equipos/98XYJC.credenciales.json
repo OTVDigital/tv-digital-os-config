@@ -1,0 +1,10 @@
+{
+  "nota": "Credenciales de Series cifradas para este equipo. Solo este box las abre. No editar a mano.",
+  "formato": 1,
+  "cifrado": "AES-GCM",
+  "kdf": "PBKDF2-SHA256",
+  "iteraciones": 310000,
+  "sal": "7WydNE0Y83XTSuDEMZVG8g==",
+  "iv": "CXbr7h8ExuKAigTj",
+  "datos": "8oJfTPL9HRsdGmE6/nu5wO86kVuD7WveyQm4RM3fsdwIz5WP2JnrI4a+VtIqeyxFMQRZbt3A1nApAdWD0GCkNJxv29k="
+}
