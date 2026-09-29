@@ -48,20 +48,19 @@
       "category": "videos",
       "recommended": true,
       "required": false,
-      "sha256": "b0b7f1a9bc238b69b8d163c00ec723e8738ea5fd20ea2fe867948565543e1f28",
-      "needs_secure_video": true
+      "sha256": "b0b7f1a9bc238b69b8d163c00ec723e8738ea5fd20ea2fe867948565543e1f28"
     },
     {
       "id": "otv-digital-os",
       "name": "OTV Digital OS",
       "description": "Sistema del equipo",
       "package": "com.tvdigital.os",
-      "version": "1.0.28",
-      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/TVDigitalOS_v1.0.28.apk",
+      "version": "1.0.30",
+      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/TVDigitalOS_v1.0.30.apk",
       "category": "sistema",
       "recommended": false,
       "required": true,
-      "sha256": "a498cb60b3c9e73493b96fd3a99e8a03138e76ec724b53d71c4abe5f478eaeb7"
+      "sha256": "e38b023607ecd6a973ea6b35cffe1fa2806393ab65b169abbd7408503d3df3a7"
     }
   ]
 }
