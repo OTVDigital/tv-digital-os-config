@@ -1731,6 +1731,7 @@ a{color:var(--accent)}
   }
 
   function readGhForm() {
+    var antes = gh.owner + "/" + gh.repo + "@" + gh.branch;
     gh.owner = $("ghOwner").value.trim() || GH_DEFAULT.owner;
     gh.repo = $("ghRepo").value.trim() || GH_DEFAULT.repo;
     gh.branch = $("ghBranch").value.trim() || GH_DEFAULT.branch;
@@ -1747,9 +1748,59 @@ a{color:var(--accent)}
       else localStorage.removeItem("otv_gh_token");
     } catch (e) { /* almacenamiento no disponible */ }
 
-    ghShas = {};
+    /*
+     * Lo traido de GitHub sigue valiendo mientras se apunte al mismo
+     * repositorio. Olvidarlo cada vez que se cierra este panel dejaba a
+     * la consola sin saber si su copia estaba al dia.
+     */
+    if (antes !== gh.owner + "/" + gh.repo + "@" + gh.branch) ghShas = {};
     renderGh();
     renderAppsOut();
+  }
+
+  /*
+   * Trae el apps.json publicado y la consola pasa a trabajar sobre el.
+   *
+   * La consola guarda su propia copia del catalogo para poder usarse sin
+   * conexion, pero publicar esa copia sin mirar GitHub pisaba lo que se
+   * hubiera cambiado desde otro lado. Paso el 28/09/2026: al subir OTV
+   * 1.0.30 se perdio "needs_secure_video" de YouTube, y antes las firmas
+   * de SmartTube y YouTube. Por eso se trae al abrir y antes de publicar.
+   */
+  function traerCatalogo(soloSiNoHayCambios) {
+    return ghRead("apps.json").then(function (actual) {
+      /* Repositorio nuevo, sin catalogo: no hay nada que pisar. */
+      if (!actual) { ghShas["apps.json"] = "(no existe)"; return false; }
+      /*
+       * Al abrir se trae en segundo plano. Si mientras tanto ya se cargo
+       * una APK, no se le pisa el cambio: queda sin marcar como traido y
+       * Publicar se encarga.
+       */
+      if (soloSiNoHayCambios && (state.upload || state.pending)) return false;
+      var p = parseFirstJson(actual.text).value;
+      if (!p || typeof p !== "object" || Array.isArray(p)) throw new Error("el apps.json de GitHub no es un objeto");
+      state.apps = p; persist("apps", p);
+      $("appsBase").value = JSON.stringify(p, null, 2);
+      renderCatalog(); renderAppsOut();
+      if (actual.sha) ghShas["apps.json"] = actual.sha;
+      return true;
+    });
+  }
+
+  /* Mensaje que queda fijo: un aviso de copia vieja no se puede borrar solo. */
+  function avisoFijo(el, text) {
+    el.textContent = text;
+    el.style.color = "var(--bad)";
+  }
+
+  function traerCatalogoAlAbrir() {
+    if (!ghToken || ghBlocked) return;
+    traerCatalogo(true).then(function (ok) {
+      if (ok) flash($("msgApps"), "Catálogo traído de GitHub: la consola trabaja sobre lo publicado.");
+    }, function (e) {
+      avisoFijo($("msgApps"), "No pude traer el catálogo de GitHub (" + e.message + "). " +
+        "Lo que ves es una copia guardada: al publicar lo voy a traer primero.");
+    });
   }
 
   function ghTest() {
@@ -1884,6 +1935,37 @@ a{color:var(--accent)}
     var r = validateApps(state.apps);
     if (r.errors.length) { flash($("msgApps"), "Hay errores en el cat\u00e1logo. Corregilos antes de publicar.", true); return; }
     if (!ghReady($("msgApps"))) return;
+
+    /*
+     * Sin haber traido el catalogo en esta sesion, lo que se ve puede ser
+     * una copia vieja y publicarla pisaria lo que hay en GitHub. Se trae
+     * y se para: hay que mirar el resultado antes de publicar.
+     */
+    if (!ghShas["apps.json"]) {
+      $("appsPublish").disabled = true;
+      var habiaApk = !!state.upload;
+      traerCatalogo().then(function () {
+        if (habiaApk) {
+          /*
+           * El cambio de la APK se habia hecho sobre la copia vieja y se
+           * acaba de perder. Subirla igual borraria la version anterior
+           * que el catalogo publicado todavia usa.
+           */
+          state.upload = null;
+          renderUploadStrip();
+          avisoFijo($("msgApps"), "Traje el catálogo publicado porque la consola tenía una copia guardada. " +
+            "Volvé a cargar la APK sobre este catálogo y publicá de nuevo.");
+        } else {
+          avisoFijo($("msgApps"), "Traje el catálogo publicado porque la consola tenía una copia guardada. " +
+            "Si habías cambiado algo, hacelo de nuevo sobre este y publicá.");
+        }
+      }, function (e) {
+        avisoFijo($("msgApps"), "No pude traer el catálogo de GitHub (" + e.message + "). No publiqué nada.");
+      }).then(function () {
+        $("appsPublish").disabled = false;
+      });
+      return;
+    }
 
     $("appsLog").textContent = "";
     $("appsPublish").disabled = true;
@@ -3036,8 +3118,14 @@ a{color:var(--accent)}
   });
 
   $("ghPill").addEventListener("click", openGh);
-  $("ghClose").addEventListener("click", function () { readGhForm(); $("ghPanel").hidden = true; });
-  $("ghPanel").addEventListener("click", function (e) { if (e.target === $("ghPanel")) { readGhForm(); $("ghPanel").hidden = true; } });
+  /* Recien conectada (o cambiada de repositorio), se trae el catalogo. */
+  function cerrarGh() {
+    readGhForm();
+    $("ghPanel").hidden = true;
+    if (!ghShas["apps.json"]) traerCatalogoAlAbrir();
+  }
+  $("ghClose").addEventListener("click", cerrarGh);
+  $("ghPanel").addEventListener("click", function (e) { if (e.target === $("ghPanel")) cerrarGh(); });
   $("ghTest").addEventListener("click", ghTest);
   $("ghPull").addEventListener("click", ghPull);
   $("ghForget").addEventListener("click", function () {
@@ -3146,6 +3234,7 @@ a{color:var(--accent)}
   }
 
   boot();
+  traerCatalogoAlAbrir();
 
   if (window.claude && window.claude.use) {
     window.claude.use("db").then(function (ns) {
@@ -3161,6 +3250,8 @@ a{color:var(--accent)}
         db.doc("config/" + pair[0]).get().then(function (snap) {
           if (!snap.exists) return;
           var v = snap.data() || {};
+          /* Lo traido de GitHub manda sobre la copia sincronizada. */
+          if (pair[0] === "apps" && ghShas["apps.json"]) return;
           try { if (v.json) { var p = JSON.parse(v.json); local("otv_" + pair[0], p); pair[1](p); } } catch (e) { /* guardado ilegible */ }
         }, function () {});
       });
