@@ -4,7 +4,7 @@
   "cifrado": "AES-GCM",
   "kdf": "PBKDF2-SHA256",
   "iteraciones": 310000,
-  "sal": "BV20kzxpeNI8H2XnPTJV8A==",
-  "iv": "llmyGPXAs3XhLQ4W",
-  "datos": "y8mHUFuNXWzv0SBU7RmP5Wvl7BMXWHChVtNvcHUUS25L4LCARaWPluwOG0BK59eppycWuqp+/cCLE6erQq89Tpv6lq91zh9CMjt8EA=="
+  "sal": "qqdVycVv83/8Nr7zuZRGrg==",
+  "iv": "j8+YZ40vVAsen9wo",
+  "datos": "0eyVlKq/BEI2liXR6sAVbc/Kn/DzyGM3K58P1heKf9e+A4LMnXkDGAxAdEslngRF0HrreCk4adDUBXh/gGtLsLst"
 }
