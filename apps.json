@@ -49,7 +49,8 @@
       "recommended": true,
       "required": false,
       "sha256": "b0b7f1a9bc238b69b8d163c00ec723e8738ea5fd20ea2fe867948565543e1f28",
-      "needs_secure_video": true
+      "needs_secure_video": true,
+      "exclude_models": ["MX95G"]
     },
     {
       "id": "otv-digital-os",
