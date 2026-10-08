@@ -818,7 +818,7 @@ a{color:var(--accent)}
     {"package":"org.smarttube.stable","name":"Videos en Línea","version":"31.94","description":"Reproductor optimizado para acceder a videos en línea desde el TV Box.","size":"25 MB","updated":"17/07/2026","recommended":false}
   ]};
 
-  var CONFIG_DEFAULT = {"system":{"launcher_version":"0.0.2","maintenance":false,"show_store":true,"show_tools":false,"theme":"dark","background":"default.png"}};
+  var CONFIG_DEFAULT = {"system":{"launcher_version":"0.0.2","maintenance":false,"show_store":true,"show_tools":false,"theme":"dark","background":"default.jpg"}};
 
   var state = {
     apps: clone(APPS_DEFAULT),
@@ -1884,7 +1884,7 @@ a{color:var(--accent)}
       ["config.json", function (p) {
         state.configBase = p; persist("config", p);
         $("configBase").value = JSON.stringify(p, null, 2);
-        $("iName").value = (p.system && p.system.background) || "default.png";
+        $("iName").value = (p.system && p.system.background) || "default.jpg";
         renderConfig();
       }]
     ];
@@ -2098,14 +2098,25 @@ a{color:var(--accent)}
         throw e;
       });
     } else {
-      cadena = Promise.resolve();
+      /* Sin imagen nueva, el fondo tiene que existir ya en GitHub: si no,
+         los equipos fallan al bajarlo y se quedan con el anterior sin
+         avisar (07/10/2026: se publico default.png y el archivo es
+         default.jpg). */
+      var s0 = logStep("configLog", "Comprobando backgrounds/" + nombre + "\u2026");
+      cadena = ghRead("backgrounds/" + nombre).then(function (actual) {
+        if (!actual) {
+          s0.err("backgrounds/" + nombre + " no existe en GitHub.");
+          throw new Error("No existe backgrounds/" + nombre + ". Sub\u00ed esa imagen o escrib\u00ed el nombre de una que ya est\u00e9 (por ejemplo default.jpg).");
+        }
+        s0.ok("backgrounds/" + nombre + " est\u00e1 en GitHub.");
+      });
     }
 
     cadena.then(function () {
       var s2 = logStep("configLog", "Publicando config.json\u2026");
       return ghCommitJson("config.json", buildConfig(), "Fondo: " + nombre, s2);
     }).then(function () {
-      flash($("msgConfig"), "Publicado. En hasta 5 minutos los equipos cambian el fondo.");
+      flash($("msgConfig"), "Publicado. GitHub tarda unos 5 minutos en servirlo; despu\u00e9s cada equipo lo toma al reiniciarse o dentro de las pr\u00f3ximas 6 horas.");
     }, function (e) {
       flash($("msgConfig"), e.message, true);
     }).then(function () {
@@ -2233,7 +2244,7 @@ a{color:var(--accent)}
   function buildConfig() {
     var out = clone(state.configBase);
     if (!out.system || typeof out.system !== "object") out.system = {};
-    out.system.background = $("iName").value.trim() || "default.png";
+    out.system.background = $("iName").value.trim() || "default.jpg";
     return out;
   }
 
@@ -3085,7 +3096,7 @@ a{color:var(--accent)}
   wireDrop("imgDrop", "imgFile", onImage);
   $("iName").addEventListener("input", renderConfig);
   $("iReset").addEventListener("click", function () {
-    $("iName").value = "default.png"; state.imgBlob = null;
+    $("iName").value = "default.jpg"; state.imgBlob = null;
     if (state.imgUrl) URL.revokeObjectURL(state.imgUrl); state.imgUrl = "";
     $("iDownload").disabled = true; $("iOrig").textContent = "—"; $("iOpt").textContent = "—";
     renderConfig(); flash($("msgImg"), "Vuelve al fondo incluido en la aplicación.");
@@ -3114,7 +3125,7 @@ a{color:var(--accent)}
   });
   $("configCopy").addEventListener("click", function () { copyText($("configOut").textContent, $("msgConfig")); });
   $("configLoad").addEventListener("click", function () {
-    loadBase("configBase", "config", $("msgConfig"), null, function (p) { state.configBase = p; $("iName").value = (p.system && p.system.background) || "default.png"; renderConfig(); });
+    loadBase("configBase", "config", $("msgConfig"), null, function (p) { state.configBase = p; $("iName").value = (p.system && p.system.background) || "default.jpg"; renderConfig(); });
   });
 
   $("ghPill").addEventListener("click", openGh);
@@ -3208,7 +3219,7 @@ a{color:var(--accent)}
     $("appsBase").value = JSON.stringify(state.apps, null, 2);
     $("statusBase").value = JSON.stringify(state.statusBase, null, 2);
     $("configBase").value = JSON.stringify(state.configBase, null, 2);
-    $("iName").value = (state.configBase.system && state.configBase.system.background) || "default.png";
+    $("iName").value = (state.configBase.system && state.configBase.system.background) || "default.jpg";
     $("sMsg").value = "Servicio funcionando correctamente.";
     $("nId").value = freshId();
 
