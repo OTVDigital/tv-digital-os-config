@@ -513,6 +513,18 @@ a{color:var(--accent)}
           </div>
         </section>
 
+        <section class="panel">
+          <h2>Cuentas de TV en lote</h2>
+          <div class="body">
+            <p class="hint">Para cargar muchas cuentas de TV Digital de una vez (por ejemplo, si cambia el panel). Una línea por equipo: <b>CÓDIGO;correo;contraseña</b>. Uso la clave de cada equipo guardada en "Mis equipos", así que primero abrí "Mis equipos" con tu clave.</p>
+            <label class="field"><span>Una línea por equipo</span><textarea id="tvLote" rows="8" spellcheck="false" autocomplete="off" style="font-family:var(--mono)" placeholder="RVT-WKH;cliente1@correo.com;Clave123&#10;9Y1-0SD;cliente2@correo.com;Clave456"></textarea></label>
+            <label class="toggle"><input type="checkbox" id="tvLoteForce"><span><b>Forzar nuevo ingreso en esos equipos</b><small>Reinstala TV Digital para que entre con la cuenta nueva aunque hoy esté adentro con la vieja.</small></span></label>
+            <div class="row"><button class="btn" id="tvLoteGo" type="button">Cargar cuentas</button></div>
+            <ul class="log" id="tvLoteLog"></ul>
+            <p class="msg" id="msgTvLote"></p>
+          </div>
+        </section>
+
         <div id="eqEditor" hidden>
           <section class="panel">
             <h2>Equipo <span id="eqTitle"></span></h2>
@@ -545,6 +557,24 @@ a{color:var(--accent)}
               </div>
               <div class="callout"><b>Cómo se guardan</b>Cifradas con la clave del propio equipo (AES-GCM). En GitHub queda un archivo que solo ese box puede abrir. Ni siquiera con tu clave de clientes se leen desde acá.</div>
               <p class="msg" id="msgEqCred"></p>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2>Cuenta de TV Digital (autocompletado)</h2>
+            <div class="body">
+              <p class="hint">Correo y contraseña de TV Digital de este cliente. Cuando TV Digital pide iniciar sesión, el equipo los completa y entra solo. Usa la misma clave del equipo de arriba. Necesita OTV 1.0.33 o más nueva en el box.</p>
+              <div class="two">
+                <label class="field"><span>Correo de TV Digital</span><input type="text" id="eqTvUser" spellcheck="false" autocomplete="off"></label>
+                <label class="field"><span>Contraseña de TV Digital</span><input type="text" id="eqTvPass" spellcheck="false" autocomplete="off"></label>
+              </div>
+              <div class="row">
+                <button class="btn" id="eqTvSave" type="button">Guardar cuenta de TV</button>
+                <button class="btn ghost" id="eqTvDel" type="button">Quitar de este equipo</button>
+                <button class="btn danger small" id="eqTvForce" type="button">Forzar nuevo ingreso</button>
+              </div>
+              <p class="hint"><b>Forzar nuevo ingreso</b> reinstala TV Digital en el box para que vuelva a pedir la cuenta y entre con la cargada acá. Solo hace falta si el equipo quedó adentro con una cuenta vieja: cuando una cuenta deja de valer, TV Digital ya la vuelve a pedir sola. Funciona en equipos con OTV de sistema.</p>
+              <p class="msg" id="msgEqTv"></p>
             </div>
           </section>
 
@@ -2370,6 +2400,7 @@ a{color:var(--accent)}
     $("eqNote").value = (clientes.mapa[c] && clientes.mapa[c].nota) || "";
     $("eqSecret").value = (clientes.mapa[c] && clientes.mapa[c].secreto) || "";
     $("eqCredUser").value = ""; $("eqCredPass").value = "";
+    $("eqTvUser").value = ""; $("eqTvPass").value = ""; $("msgEqTv").textContent = "";
     $("eqCredMulti").value = ""; $("eqCredMultiSecrets").value = "";
     $("eqCredMultiSecretsWrap").hidden = true;
     $("msgEqCred").textContent = "";
@@ -2442,29 +2473,169 @@ a{color:var(--accent)}
 
   function rutaCredEquipo(c) { return "equipos/" + c + ".credenciales.json"; }
 
-  function cifrarCredenciales(secreto, usuario, clave) {
+  /* Series (usuario, clave) y TV Digital (tv_usuario, tv_clave,
+     tv_reingreso) viajan en el mismo archivo: el box descifra una sola vez,
+     que en un equipo flojo son unos veinte segundos. Los OTV viejos solo
+     leen usuario/clave y siguen andando igual. */
+  function cifrarCredenciales(secreto, datos) {
     var sal = crypto.getRandomValues(new Uint8Array(16));
     var iv = crypto.getRandomValues(new Uint8Array(12));
     return derivarClave(secreto, sal).then(function (k) {
       return crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, k,
-        new TextEncoder().encode(JSON.stringify({ usuario: usuario, clave: clave })));
+        new TextEncoder().encode(JSON.stringify(datos)));
     }).then(function (buf) {
       return {
-        nota: "Credenciales de Series cifradas para este equipo. Solo este box las abre. No editar a mano.",
+        nota: "Credenciales de Series y TV Digital cifradas para este equipo. Solo este box las abre. No editar a mano.",
         formato: 1, cifrado: "AES-GCM", kdf: "PBKDF2-SHA256", iteraciones: ITERACIONES,
         sal: bytesToB64(sal), iv: bytesToB64(iv), datos: bytesToB64(new Uint8Array(buf))
       };
     });
   }
 
-  function publicarCredUno(codigo, secreto, usuario, clave) {
-    var ruta = rutaCredEquipo(codigo);
-    return cifrarCredenciales(secreto, usuario, clave).then(function (doc) {
-      return ghRead(ruta).then(function (actual) {
-        return ghPutFile(ruta, textToB64(JSON.stringify(doc, null, 2) + "\n"),
-          "Credenciales de Series de " + codigoVisible(codigo), actual ? actual.sha : null);
+  /* Lo que ya hay publicado para el equipo, descifrado con su clave.
+     abierto=false: hay archivo pero esta clave no lo abre. */
+  function leerCredDatos(codigo, secreto) {
+    return ghRead(rutaCredEquipo(codigo)).then(function (actual) {
+      if (!actual) return { sha: null, datos: {}, abierto: true };
+      var doc = parseFirstJson(actual.text).value;
+      if (!doc || !doc.sal || !doc.iv || !doc.datos) return { sha: actual.sha, datos: {}, abierto: false };
+      return derivarClave(secreto, b64aBytes(doc.sal)).then(function (k) {
+        return crypto.subtle.decrypt({ name: "AES-GCM", iv: b64aBytes(doc.iv) }, k, b64aBytes(doc.datos));
+      }).then(function (buf) {
+        return { sha: actual.sha, datos: JSON.parse(new TextDecoder().decode(buf)) || {}, abierto: true };
+      }, function () {
+        return { sha: actual.sha, datos: {}, abierto: false };
       });
     });
+  }
+
+  /* Aplica cambios (un valor null o "" borra ese dato) sobre lo publicado
+     y lo vuelve a cifrar. Si no queda ninguna cuenta, borra el archivo. */
+  function publicarCred(codigo, secreto, cambios, mensaje) {
+    var ruta = rutaCredEquipo(codigo);
+    return leerCredDatos(codigo, secreto).then(function (r) {
+      var d = r.datos;
+      Object.keys(cambios).forEach(function (k) {
+        if (cambios[k] === null || cambios[k] === "") delete d[k]; else d[k] = cambios[k];
+      });
+      var hayCuenta = (d.usuario && d.clave) || (d.tv_usuario && d.tv_clave);
+      if (!hayCuenta) {
+        if (!r.sha) return { abierto: r.abierto, borrado: false };
+        return ghApi("/repos/" + gh.owner + "/" + gh.repo + "/contents/" + ruta, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: "Se quitan las credenciales de " + codigoVisible(codigo), sha: r.sha, branch: gh.branch })
+        }).then(function () { return { abierto: r.abierto, borrado: true }; });
+      }
+      return cifrarCredenciales(secreto, d).then(function (doc) {
+        return ghPutFile(ruta, textToB64(JSON.stringify(doc, null, 2) + "\n"), mensaje, r.sha);
+      }).then(function () { return { abierto: r.abierto, borrado: false }; });
+    });
+  }
+
+  function publicarCredUno(codigo, secreto, usuario, clave) {
+    return publicarCred(codigo, secreto, { usuario: usuario, clave: clave },
+      "Credenciales de Series de " + codigoVisible(codigo));
+  }
+
+  /* Recuerda la clave del equipo en el directorio cifrado de clientes. */
+  function recordarSecretos(lista) {
+    if (!clientes.abierto || !lista.length) return Promise.resolve();
+    return guardarClientes(function (mapa) {
+      lista.forEach(function (o) {
+        mapa[o.code] = mapa[o.code] || {};
+        mapa[o.code].secreto = o.secreto;
+      });
+    }, "Se recuerdan las claves de equipo").then(null, function () {});
+  }
+
+  function secretoDelEquipo() {
+    return ($("eqSecret").value || "").trim() ||
+      (clientes.mapa[eq.code] && clientes.mapa[eq.code].secreto) || "";
+  }
+
+  var AVISO_NO_ABRIA = " Ojo: el archivo anterior no abría con esta clave del equipo y se reemplazó; si tenía la cuenta de la otra app, volvé a cargarla.";
+
+  function guardarTv() {
+    var secreto = secretoDelEquipo();
+    var usuario = ($("eqTvUser").value || "").trim();
+    var clave = $("eqTvPass").value || "";
+    if (!secreto) { flash($("msgEqTv"), "Falta la clave del equipo (arriba, en Credenciales de Series).", true); return; }
+    if (!usuario || !clave) { flash($("msgEqTv"), "Cargá el correo y la contraseña de TV Digital.", true); return; }
+    if (!ghReady($("msgEqTv"))) return;
+    $("eqTvSave").disabled = true;
+    flash($("msgEqTv"), "Guardando…");
+    publicarCred(eq.code, secreto, { tv_usuario: usuario, tv_clave: clave }, "Cuenta de TV Digital de " + codigoVisible(eq.code))
+      .then(function (r) {
+        return recordarSecretos([{ code: eq.code, secreto: secreto }]).then(function () { return r; });
+      }).then(function (r) {
+        $("eqTvPass").value = "";
+        flash($("msgEqTv"), "Guardada. En hasta 5 minutos el equipo la usa la próxima vez que TV Digital pida iniciar sesión." + (r.abierto ? "" : AVISO_NO_ABRIA));
+      }, function (e) {
+        flash($("msgEqTv"), e.message || "No se pudo guardar.", true);
+      }).then(function () { $("eqTvSave").disabled = false; });
+  }
+
+  function borrarTv() {
+    var secreto = secretoDelEquipo();
+    if (!secreto) { flash($("msgEqTv"), "Falta la clave del equipo (arriba, en Credenciales de Series).", true); return; }
+    if (!ghReady($("msgEqTv"))) return;
+    if (!window.confirm("¿Quitar la cuenta de TV Digital de " + codigoVisible(eq.code) + "?\n\nLas credenciales de Series, si hay, quedan.")) return;
+    publicarCred(eq.code, secreto, { tv_usuario: null, tv_clave: null, tv_reingreso: null }, "Se quita la cuenta de TV Digital de " + codigoVisible(eq.code))
+      .then(function (r) {
+        flash($("msgEqTv"), r.abierto ? "Quitada." : "No se pudo abrir el archivo con esta clave del equipo: no se tocó.", !r.abierto);
+      }, function (e) { flash($("msgEqTv"), e.message || "No se pudo quitar.", true); });
+  }
+
+  function marcaReingreso() { return "r" + Date.now(); }
+
+  function forzarTv() {
+    var secreto = secretoDelEquipo();
+    if (!secreto) { flash($("msgEqTv"), "Falta la clave del equipo (arriba, en Credenciales de Series).", true); return; }
+    if (!ghReady($("msgEqTv"))) return;
+    if (!window.confirm("Forzar nuevo ingreso en " + codigoVisible(eq.code) + ":\n\nel equipo va a reinstalar TV Digital (unos minutos) y entrar con la cuenta cargada acá. Si el cliente está mirando TV, se le corta.\n\n¿Seguir?")) return;
+    leerCredDatos(eq.code, secreto).then(function (r) {
+      if (!r.abierto) throw new Error("El archivo de este equipo no abre con esta clave: revisá la clave del equipo.");
+      if (!(r.datos.tv_usuario && r.datos.tv_clave)) throw new Error("Primero cargá la cuenta de TV Digital de este equipo.");
+      return publicarCred(eq.code, secreto, { tv_reingreso: marcaReingreso() }, "Nuevo ingreso de TV Digital en " + codigoVisible(eq.code));
+    }).then(function () {
+      flash($("msgEqTv"), "Pedido. El equipo lo aplica la próxima vez que se abra TV Digital (o Series), con internet.");
+    }, function (e) { flash($("msgEqTv"), e.message || "No se pudo pedir.", true); });
+  }
+
+  function cargarTvLote() {
+    var lineas = ($("tvLote").value || "").split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
+    if (!lineas.length) { flash($("msgTvLote"), "Pegá al menos una línea CÓDIGO;correo;contraseña.", true); return; }
+    if (!clientes.abierto) { flash($("msgTvLote"), "Primero abrí \"Mis equipos\" con tu clave: de ahí saco la clave de cada equipo.", true); return; }
+    if (!ghReady($("msgTvLote"))) return;
+    var forzar = $("tvLoteForce").checked;
+    var marca = marcaReingreso();
+    $("tvLoteLog").textContent = "";
+    $("tvLoteGo").disabled = true;
+    var ok = 0, mal = 0;
+    var cadena = Promise.resolve();
+    lineas.forEach(function (linea, i) {
+      cadena = cadena.then(function () {
+        var p = linea.split(/[;\t]/);
+        var c = normalizarCodigo(p[0]);
+        var usuario = (p[1] || "").trim();
+        var clave = (p[2] || "").trim();
+        var s = logStep("tvLoteLog", "Línea " + (i + 1) + ": " + (c ? codigoVisible(c) : (p[0] || "?")) + "…");
+        if (!c || !usuario || !clave) { mal++; s.err("Línea " + (i + 1) + ": falta el código, el correo o la contraseña."); return; }
+        var secreto = clientes.mapa[c] && clientes.mapa[c].secreto;
+        if (!secreto) { mal++; s.err(codigoVisible(c) + ": no tengo guardada su clave de equipo. Cargala una vez desde el equipo."); return; }
+        var cambios = { tv_usuario: usuario, tv_clave: clave };
+        if (forzar) cambios.tv_reingreso = marca;
+        return publicarCred(c, secreto, cambios, "Cuenta de TV Digital de " + codigoVisible(c)).then(function (r) {
+          ok++;
+          s.ok(codigoVisible(c) + ": cargada" + (forzar ? " y con nuevo ingreso pedido" : "") + (r.abierto ? "." : ". Ojo: el archivo anterior no abría y se reemplazó."));
+        }, function (e) { mal++; s.err(codigoVisible(c) + ": " + (e.message || "no se pudo")); });
+      });
+    });
+    cadena.then(function () {
+      flash($("msgTvLote"), ok + " cargadas" + (mal ? ", " + mal + " con problemas (mirá la lista)." : ". Los equipos las usan en hasta 5 minutos."), mal > 0);
+      if (!mal) $("tvLote").value = "";
+    }).then(function () { $("tvLoteGo").disabled = false; });
   }
 
   function guardarCredenciales() {
@@ -2525,6 +2696,18 @@ a{color:var(--accent)}
   function borrarCredenciales() {
     if (!ghReady($("msgEqCred"))) return;
     if (!window.confirm("¿Quitar las credenciales de Series de " + codigoVisible(eq.code) + "?\n\nEl equipo vuelve a pedirlas a mano.")) return;
+    /* Con la clave del equipo se quita solo lo de Series y queda la
+       cuenta de TV Digital, si hay. */
+    var secreto = secretoDelEquipo();
+    if (secreto) {
+      publicarCred(eq.code, secreto, { usuario: null, clave: null }, "Se quitan las credenciales de Series de " + codigoVisible(eq.code))
+        .then(function (r) {
+          if (!r.abierto) { flash($("msgEqCred"), "No se pudo abrir el archivo con esta clave del equipo: no se tocó.", true); return; }
+          flash($("msgEqCred"), "Quitadas. En hasta 5 minutos el equipo deja de completarlas.");
+        }, function (e) { flash($("msgEqCred"), e.message || "No se pudo quitar.", true); });
+      return;
+    }
+    if (!window.confirm("No tengo la clave de este equipo: se borra el archivo entero, incluida la cuenta de TV Digital si había. ¿Seguir?")) return;
     var ruta = rutaCredEquipo(eq.code);
     ghRead(ruta).then(function (actual) {
       if (!actual) { flash($("msgEqCred"), "No había credenciales cargadas."); return; }
@@ -3154,6 +3337,10 @@ a{color:var(--accent)}
   $("eqNameSave").addEventListener("click", guardarDatosCliente);
   $("eqCredSave").addEventListener("click", guardarCredenciales);
   $("eqCredDel").addEventListener("click", borrarCredenciales);
+  $("eqTvSave").addEventListener("click", guardarTv);
+  $("eqTvDel").addEventListener("click", borrarTv);
+  $("eqTvForce").addEventListener("click", forzarTv);
+  $("tvLoteGo").addEventListener("click", cargarTvLote);
   $("eqUnlock").addEventListener("click", function () {
     abrirClientes($("eqKey").value, $("eqKey2").value, $("eqKeyRemember").checked, false);
   });
