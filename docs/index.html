@@ -543,7 +543,8 @@ a{color:var(--accent)}
             <div class="body">
               <p class="hint">Si este cliente usa Series, cargá su usuario y contraseña. El equipo las completa solo cuando Series las pide, sin que el cliente escriba nada.</p>
               <label class="field"><span>Clave del equipo</span><input type="text" id="eqSecret" spellcheck="false" autocomplete="off" placeholder="s:HZ0UCFN232" style="font-family:var(--mono)"></label>
-              <p class="hint">Es lo que muestra el box en Ajustes → Equipo OTV (mantené apretado OK), o lo que imprime el script al convertirlo. Con eso, solo este equipo puede leer sus credenciales.</p>
+              <p class="msg" id="eqSecretMsg"></p>
+              <p class="hint">Es lo que muestra el box en Ajustes → Equipo OTV (mantené apretado OK), o lo que imprime el script al convertirlo. Con eso, solo este equipo puede leer sus credenciales. Copiala tal cual: distingue mayúsculas de minúsculas.</p>
               <div class="two">
                 <label class="field"><span>Usuario / correo de Series</span><input type="text" id="eqCredUser" spellcheck="false" autocomplete="off"></label>
                 <label class="field"><span>Contraseña de Series</span><input type="text" id="eqCredPass" spellcheck="false" autocomplete="off"></label>
@@ -878,7 +879,8 @@ a{color:var(--accent)}
   function flash(el, text, bad) {
     el.textContent = text;
     el.style.color = bad ? "var(--bad)" : "var(--ok)";
-    setTimeout(function () { if (el.textContent === text) el.textContent = ""; }, 5000);
+    /* Los errores quedan más tiempo: suelen traer qué hacer. */
+    setTimeout(function () { if (el.textContent === text) el.textContent = ""; }, bad ? 15000 : 5000);
   }
   function local(key, value) {
     try {
@@ -2399,6 +2401,7 @@ a{color:var(--accent)}
     $("eqName").value = nombreDe(c);
     $("eqNote").value = (clientes.mapa[c] && clientes.mapa[c].nota) || "";
     $("eqSecret").value = (clientes.mapa[c] && clientes.mapa[c].secreto) || "";
+    avisarClaveEquipo();
     $("eqCredUser").value = ""; $("eqCredPass").value = "";
     $("eqTvUser").value = ""; $("eqTvPass").value = ""; $("msgEqTv").textContent = "";
     $("eqCredMulti").value = ""; $("eqCredMultiSecrets").value = "";
@@ -2473,6 +2476,70 @@ a{color:var(--accent)}
 
   function rutaCredEquipo(c) { return "equipos/" + c + ".credenciales.json"; }
 
+  /* El código del equipo sale de su clave: los primeros 30 bits del
+     SHA-256, en 6 grupos de 5 bits (la misma cuenta que hace OTV en
+     CodigoEquipo.desdeIdentificador). Con eso se detecta una clave mal
+     copiada antes de publicar un archivo que el box no va a poder abrir. */
+  function codigoDeClave(secreto) {
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(secreto)).then(function (buf) {
+      var h = new Uint8Array(buf);
+      var v = ((h[0] << 24) | (h[1] << 16) | (h[2] << 8) | h[3]) >>> 2;
+      var s = "";
+      for (var i = 5; i >= 0; i--) s += CROCKFORD.charAt((v >>> (5 * i)) & 31);
+      return s;
+    });
+  }
+
+  /* Las formas típicas de copiar mal una clave (mayúsculas, el prefijo,
+     un espacio), para poder sugerir la buena. */
+  function variantesDeClave(secreto) {
+    var limpio = secreto.replace(/\s+/g, "");
+    var m = /^[sSaA]:(.*)$/.exec(limpio);
+    var cuerpo = m ? m[1] : limpio;
+    return ["s:" + cuerpo.toUpperCase(), "a:" + cuerpo.toLowerCase(), "s:" + cuerpo, "a:" + cuerpo, limpio]
+      .filter(function (v, i, lista) { return v !== secreto && lista.indexOf(v) === i; });
+  }
+
+  /* ok=true si la clave da el código del equipo; si no, sugerencia trae
+     la variante que sí lo da (o "" si ninguna). */
+  function revisarClave(codigo, secreto) {
+    return codigoDeClave(secreto).then(function (c) {
+      if (c === codigo) return { ok: true, sugerencia: "" };
+      var variantes = variantesDeClave(secreto);
+      return Promise.all(variantes.map(codigoDeClave)).then(function (codigos) {
+        var i = codigos.indexOf(codigo);
+        return { ok: false, sugerencia: i >= 0 ? variantes[i] : "" };
+      });
+    });
+  }
+
+  function avisoClaveMala(codigo, r) {
+    return "Esta clave no corresponde al equipo " + codigoVisible(codigo) + ". " +
+      (r.sugerencia
+        ? "Probá con " + r.sugerencia + " (distingue mayúsculas de minúsculas)."
+        : "Copiala tal cual la muestra el box en Ajustes → Equipo OTV: distingue mayúsculas de minúsculas y empieza con s: o a:.");
+  }
+
+  /* Corta antes de publicar si la clave no es la del equipo. */
+  function exigirClave(codigo, secreto) {
+    return revisarClave(codigo, secreto).then(function (r) {
+      if (!r.ok) throw new Error(avisoClaveMala(codigo, r) + " No se publicó nada.");
+    });
+  }
+
+  /* El aviso al pie del campo, mientras se escribe la clave. */
+  function avisarClaveEquipo() {
+    var el = $("eqSecretMsg");
+    var secreto = ($("eqSecret").value || "").trim();
+    var codigo = eq.code;
+    if (!secreto || !codigo) { el.textContent = ""; return; }
+    revisarClave(codigo, secreto).then(function (r) {
+      if (($("eqSecret").value || "").trim() !== secreto || eq.code !== codigo) return;
+      el.textContent = r.ok ? "Clave correcta para " + codigoVisible(codigo) + "." : avisoClaveMala(codigo, r);
+      el.style.color = r.ok ? "var(--ok)" : "var(--bad)";
+    }, function () { el.textContent = ""; });
+  }
+
   /* Series (usuario, clave) y TV Digital (tv_usuario, tv_clave,
      tv_reingreso) viajan en el mismo archivo: el box descifra una sola vez,
      que en un equipo flojo son unos veinte segundos. Los OTV viejos solo
@@ -2495,7 +2562,9 @@ a{color:var(--accent)}
   /* Lo que ya hay publicado para el equipo, descifrado con su clave.
      abierto=false: hay archivo pero esta clave no lo abre. */
   function leerCredDatos(codigo, secreto) {
-    return ghRead(rutaCredEquipo(codigo)).then(function (actual) {
+    return exigirClave(codigo, secreto).then(function () {
+      return ghRead(rutaCredEquipo(codigo));
+    }).then(function (actual) {
       if (!actual) return { sha: null, datos: {}, abierto: true };
       var doc = parseFirstJson(actual.text).value;
       if (!doc || !doc.sal || !doc.iv || !doc.datos) return { sha: actual.sha, datos: {}, abierto: false };
@@ -2667,7 +2736,9 @@ a{color:var(--accent)}
 
     $("eqCredSave").disabled = true;
     flash($("msgEqCred"), "Guardando…");
-    var cadena = Promise.resolve();
+    /* Todas las claves se revisan antes de publicar la primera: si una
+       está mal, no queda la carga hecha a medias. */
+    var cadena = Promise.all(objetivos.map(function (o) { return exigirClave(o.code, o.secreto); }));
     objetivos.forEach(function (o) {
       cadena = cadena.then(function () { return publicarCredUno(o.code, o.secreto, usuario, clave); });
     });
@@ -3335,6 +3406,7 @@ a{color:var(--accent)}
   $("eqOpen").addEventListener("click", function () { abrirEquipo($("eqCode").value); });
   $("eqCode").addEventListener("keydown", function (e) { if (e.key === "Enter") abrirEquipo($("eqCode").value); });
   $("eqNameSave").addEventListener("click", guardarDatosCliente);
+  $("eqSecret").addEventListener("input", avisarClaveEquipo);
   $("eqCredSave").addEventListener("click", guardarCredenciales);
   $("eqCredDel").addEventListener("click", borrarCredenciales);
   $("eqTvSave").addEventListener("click", guardarTv);
