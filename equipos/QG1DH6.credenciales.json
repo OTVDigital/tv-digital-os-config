@@ -1,0 +1,10 @@
+{
+  "nota": "Credenciales de Series y TV Digital cifradas para este equipo. Solo este box las abre. No editar a mano.",
+  "formato": 1,
+  "cifrado": "AES-GCM",
+  "kdf": "PBKDF2-SHA256",
+  "iteraciones": 310000,
+  "sal": "skrbcT0+m+BgDLDGtX7BBg==",
+  "iv": "tg9xWcLsyCd6/gAd",
+  "datos": "+dKf8IuZ4n6nEaeNPqZB49EOsC7Ky4GsOMYY/hO4oIDpffv7X/WHRAMIfvTn97MrdhjSveam6AD0wHoOGFM9y13EBA=="
+}
