@@ -36,7 +36,8 @@
       "category": "videos",
       "recommended": false,
       "required": false,
-      "sha256": "d2e9bc90b95aa6232fbf647e63003ccb9051d1aad53531c103aa997e443457b6"
+      "sha256": "d2e9bc90b95aa6232fbf647e63003ccb9051d1aad53531c103aa997e443457b6",
+      "exclude_models": ["p291"]
     },
     {
       "id": "youtube",
