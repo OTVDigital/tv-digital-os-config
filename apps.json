@@ -6,12 +6,12 @@
       "name": "TV Digital",
       "description": "Canales en vivo",
       "package": "com.example.tvplusdos",
-      "version": "2.2",
-      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/tvplus2-2026.apk",
+      "version": "2.3",
+      "apk": "https://raw.githubusercontent.com/OTVDigital/tv-digital-os-config/main/apps/tv-digital-2.3.apk",
       "category": "tv",
       "recommended": false,
       "required": true,
-      "sha256": "ac4d7d3b0214c4abb79eb502f1cf0bf4cbd883e71c5a608bfc57c85c84a8a3ab"
+      "sha256": "d8f1153459f68065364cdb6d6c42ec8c84544a1a67a48ff74fe3acc651c08f48"
     },
     {
       "id": "series",
@@ -37,7 +37,9 @@
       "recommended": false,
       "required": false,
       "sha256": "d2e9bc90b95aa6232fbf647e63003ccb9051d1aad53531c103aa997e443457b6",
-      "exclude_models": ["p291"]
+      "exclude_models": [
+        "p291"
+      ]
     },
     {
       "id": "youtube",
