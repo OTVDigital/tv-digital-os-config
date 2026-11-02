@@ -545,6 +545,7 @@ a{color:var(--accent)}
               <label class="field"><span>Clave del equipo</span><input type="text" id="eqSecret" spellcheck="false" autocomplete="off" placeholder="s:HZ0UCFN232" style="font-family:var(--mono)"></label>
               <p class="msg" id="eqSecretMsg"></p>
               <p class="hint">Es lo que muestra el box en Ajustes → Equipo OTV (mantené apretado OK), o lo que imprime el script al convertirlo. Con eso, solo este equipo puede leer sus credenciales. Copiala tal cual: distingue mayúsculas de minúsculas.</p>
+              <p class="msg" id="estadoCredSerie" style="margin-top:4px"></p>
               <div class="two">
                 <label class="field"><span>Usuario / correo de Series</span><input type="text" id="eqCredUser" spellcheck="false" autocomplete="off"></label>
                 <label class="field"><span>Contraseña de Series</span><input type="text" id="eqCredPass" spellcheck="false" autocomplete="off"></label>
@@ -565,6 +566,7 @@ a{color:var(--accent)}
             <h2>Cuenta de TV Digital (autocompletado)</h2>
             <div class="body">
               <p class="hint">Correo y contraseña de TV Digital de este cliente. Cuando TV Digital pide iniciar sesión, el equipo los completa y entra solo. Usa la misma clave del equipo de arriba. Necesita OTV 1.0.33 o más nueva en el box.</p>
+              <p class="msg" id="estadoCredTv" style="margin-top:4px"></p>
               <div class="two">
                 <label class="field"><span>Correo de TV Digital</span><input type="text" id="eqTvUser" spellcheck="false" autocomplete="off"></label>
                 <label class="field"><span>Contraseña de TV Digital</span><input type="text" id="eqTvPass" spellcheck="false" autocomplete="off"></label>
@@ -2402,6 +2404,7 @@ a{color:var(--accent)}
     $("eqNote").value = (clientes.mapa[c] && clientes.mapa[c].nota) || "";
     $("eqSecret").value = (clientes.mapa[c] && clientes.mapa[c].secreto) || "";
     avisarClaveEquipo();
+    refrescarEstadoCred();
     $("eqCredUser").value = ""; $("eqCredPass").value = "";
     $("eqTvUser").value = ""; $("eqTvPass").value = ""; $("msgEqTv").textContent = "";
     $("eqCredMulti").value = ""; $("eqCredMultiSecrets").value = "";
@@ -2578,6 +2581,85 @@ a{color:var(--accent)}
     });
   }
 
+  /* ------------------------------------------------ qué hay ya cargado
+     Para Paco: muestra si el equipo ya tiene cuenta de Series y/o de TV
+     Digital, con el usuario a la vista y la contraseña tapada hasta que
+     se toca "Mostrar". Se descifra acá con la clave del equipo (la misma
+     que para publicar); en GitHub el archivo sigue cifrado y nadie más
+     lo abre. Los valores se arman con textContent, nunca innerHTML, por
+     si una contraseña trae < > o &. */
+  var estadoCredTimer = null;
+
+  function estadoCredEls() { return [$("estadoCredSerie"), $("estadoCredTv")]; }
+
+  function ponerEstadoAmbos(texto, color) {
+    estadoCredEls().forEach(function (el) {
+      if (!el) return;
+      el.textContent = texto;
+      el.style.color = color || "";
+    });
+  }
+
+  function pintarUnEstado(id, cargada, etiqueta, usuario, clave) {
+    var el = $(id);
+    if (!el) return;
+    el.textContent = "";
+    if (!cargada) {
+      el.style.color = "";
+      el.textContent = "— Sin cuenta de " + etiqueta + " cargada.";
+      return;
+    }
+    el.style.color = "var(--ok)";
+    var b = document.createElement("b");
+    b.textContent = "✓ " + etiqueta + " cargada";
+    el.appendChild(b);
+    el.appendChild(document.createTextNode("  ·  usuario: "));
+    var u = document.createElement("span");
+    u.style.fontFamily = "var(--mono)";
+    u.textContent = usuario || "(vacío)";
+    el.appendChild(u);
+    el.appendChild(document.createTextNode("  ·  contraseña: "));
+    var p = document.createElement("span");
+    p.style.fontFamily = "var(--mono)";
+    var TAPADO = "••••••••";
+    p.textContent = TAPADO;
+    el.appendChild(p);
+    var link = document.createElement("a");
+    link.href = "#";
+    link.textContent = "Mostrar";
+    link.style.marginLeft = "8px";
+    link.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      if (p.textContent === TAPADO) { p.textContent = clave || "(vacía)"; link.textContent = "Ocultar"; }
+      else { p.textContent = TAPADO; link.textContent = "Mostrar"; }
+    });
+    el.appendChild(link);
+  }
+
+  function refrescarEstadoCred() {
+    var codigo = eq.code;
+    var secreto = ($("eqSecret").value || "").trim();
+    if (!codigo) { ponerEstadoAmbos("", ""); return; }
+    if (!secreto) { ponerEstadoAmbos("Poné la clave del equipo para ver qué tiene cargado.", ""); return; }
+    ponerEstadoAmbos("Leyendo…", "");
+    leerCredDatos(codigo, secreto).then(function (r) {
+      /* Si cambió el equipo o la clave mientras leía, no piso con lo viejo. */
+      if (eq.code !== codigo || ($("eqSecret").value || "").trim() !== secreto) return;
+      if (!r.abierto) { ponerEstadoAmbos("Hay credenciales guardadas, pero esta clave del equipo no las abre.", "var(--bad)"); return; }
+      var d = r.datos || {};
+      pintarUnEstado("estadoCredSerie", !!(d.usuario && d.clave), "Series", d.usuario, d.clave);
+      pintarUnEstado("estadoCredTv", !!(d.tv_usuario && d.tv_clave), "TV Digital", d.tv_usuario, d.tv_clave);
+    }, function () {
+      if (eq.code !== codigo || ($("eqSecret").value || "").trim() !== secreto) return;
+      ponerEstadoAmbos("No se pudo leer lo cargado: revisá la clave del equipo.", "var(--bad)");
+    });
+  }
+
+  function refrescarEstadoCredDebounce() {
+    clearTimeout(estadoCredTimer);
+    estadoCredTimer = setTimeout(refrescarEstadoCred, 500);
+  }
+
   /* Aplica cambios (un valor null o "" borra ese dato) sobre lo publicado
      y lo vuelve a cifrar. Si no queda ninguna cuenta, borra el archivo. */
   function publicarCred(codigo, secreto, cambios, mensaje) {
@@ -2640,6 +2722,7 @@ a{color:var(--accent)}
       }).then(function (r) {
         $("eqTvPass").value = "";
         flash($("msgEqTv"), "Guardada. En hasta 5 minutos el equipo la usa la próxima vez que TV Digital pida iniciar sesión." + (r.abierto ? "" : AVISO_NO_ABRIA));
+        refrescarEstadoCred();
       }, function (e) {
         flash($("msgEqTv"), e.message || "No se pudo guardar.", true);
       }).then(function () { $("eqTvSave").disabled = false; });
@@ -2653,6 +2736,7 @@ a{color:var(--accent)}
     publicarCred(eq.code, secreto, { tv_usuario: null, tv_clave: null, tv_reingreso: null }, "Se quita la cuenta de TV Digital de " + codigoVisible(eq.code))
       .then(function (r) {
         flash($("msgEqTv"), r.abierto ? "Quitada." : "No se pudo abrir el archivo con esta clave del equipo: no se tocó.", !r.abierto);
+        refrescarEstadoCred();
       }, function (e) { flash($("msgEqTv"), e.message || "No se pudo quitar.", true); });
   }
 
@@ -2758,6 +2842,7 @@ a{color:var(--accent)}
         ? ("Guardado en " + cuantos + " equipos. En hasta 5 minutos lo toman.")
         : "Guardado. En hasta 5 minutos el equipo lo toma.");
       $("eqCredPass").value = "";
+      refrescarEstadoCred();
     }, function (e) {
       $("eqCredSave").disabled = false;
       flash($("msgEqCred"), e.message || "No se pudo guardar.", true);
@@ -2775,6 +2860,7 @@ a{color:var(--accent)}
         .then(function (r) {
           if (!r.abierto) { flash($("msgEqCred"), "No se pudo abrir el archivo con esta clave del equipo: no se tocó.", true); return; }
           flash($("msgEqCred"), "Quitadas. En hasta 5 minutos el equipo deja de completarlas.");
+          refrescarEstadoCred();
         }, function (e) { flash($("msgEqCred"), e.message || "No se pudo quitar.", true); });
       return;
     }
@@ -3406,7 +3492,7 @@ a{color:var(--accent)}
   $("eqOpen").addEventListener("click", function () { abrirEquipo($("eqCode").value); });
   $("eqCode").addEventListener("keydown", function (e) { if (e.key === "Enter") abrirEquipo($("eqCode").value); });
   $("eqNameSave").addEventListener("click", guardarDatosCliente);
-  $("eqSecret").addEventListener("input", avisarClaveEquipo);
+  $("eqSecret").addEventListener("input", function () { avisarClaveEquipo(); refrescarEstadoCredDebounce(); });
   $("eqCredSave").addEventListener("click", guardarCredenciales);
   $("eqCredDel").addEventListener("click", borrarCredenciales);
   $("eqTvSave").addEventListener("click", guardarTv);
