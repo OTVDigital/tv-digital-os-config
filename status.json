@@ -1,13 +1,13 @@
 {
   "server_online": true,
   "message": "Servicio funcionando correctamente.",
-  "notice_enabled": false,
+  "notice_enabled": true,
   "notice_level": "yellow",
-  "notice_id": "aviso-20260913-0025",
-  "notice_title": "ACTUALIZACIÓN DISPONIBLE",
-  "notice_text": "Hay una nueva versión disponible. Entrá a APLICACIONES y elegí ACTUALIZAR para instalarla.",
-  "notice_updated": "13/09/2026 00:59",
-  "notice_until": "14/09/2026 00:59",
+  "notice_id": "aviso-20261112-1814",
+  "notice_title": "Problemas con Xuper tv",
+  "notice_text": "Debido a una actualización en la versión paga de Xuper todas las versiones modificadas están sin funcionar. En cuanto este disponible se subirá una nueva modificada o buscaremos otra app que la reemplace.",
+  "notice_updated": "12/11/2026 18:18",
+  "notice_until": "",
   "notice_show_once": true,
   "apps": [
     {
