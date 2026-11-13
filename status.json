@@ -1,13 +1,13 @@
 {
   "server_online": true,
   "message": "Servicio funcionando correctamente.",
-  "notice_enabled": true,
+  "notice_enabled": false,
   "notice_level": "green",
-  "notice_id": "aviso-20261113-0929",
+  "notice_id": "aviso-20261113-1617",
   "notice_title": "SERVICIO DE SERIES NORMALIZADO",
   "notice_text": "Series ya funciona con normalidad. Por el momento no fue necesaria una actualización. Si el problema vuelve a ocurrir buscaremos alguna app alternativa. Gracias por confiar en OTV Digital",
-  "notice_updated": "13/11/2026 09:33",
-  "notice_until": "14/11/2026 09:33",
+  "notice_updated": "13/11/2026 16:25",
+  "notice_until": "14/11/2026 16:25",
   "notice_show_once": true,
   "apps": [
     {
