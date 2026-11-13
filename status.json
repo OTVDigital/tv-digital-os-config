@@ -2,12 +2,12 @@
   "server_online": true,
   "message": "Servicio funcionando correctamente.",
   "notice_enabled": true,
-  "notice_level": "yellow",
-  "notice_id": "aviso-20261112-1832",
-  "notice_title": "Problemas con la App de SERIES",
-  "notice_text": "Debido a una actualización en la versión paga de Xuper todas las versiones modificadas están sin funcionar. En cuanto este disponible se subirá una nueva modificada o buscaremos otra app que la reemplace.",
-  "notice_updated": "12/11/2026 18:37",
-  "notice_until": "",
+  "notice_level": "green",
+  "notice_id": "aviso-20261113-0929",
+  "notice_title": "SERVICIO DE SERIES NORMALIZADO",
+  "notice_text": "Series ya funciona con normalidad. Por el momento no fue necesaria una actualización. Si el problema vuelve a ocurrir buscaremos alguna app alternativa. Gracias por confiar en OTV Digital",
+  "notice_updated": "13/11/2026 09:33",
+  "notice_until": "14/11/2026 09:33",
   "notice_show_once": true,
   "apps": [
     {
