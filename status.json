@@ -3,11 +3,11 @@
   "message": "Servicio funcionando correctamente.",
   "notice_enabled": false,
   "notice_level": "yellow",
-  "notice_id": "aviso-20261114-0827",
+  "notice_id": "aviso-20261114-1403",
   "notice_title": "Nueva actualización de SERIES!",
   "notice_text": "Para continuar utilizando Xuper es necesario actualizar la versión ya disponible en catalogo. Puede ingresar en \"Aplicaciones\" o directamente en \"ajustes-buscar actualizaciones\".  Muchas gracias!!",
-  "notice_updated": "14/11/2026 08:55",
-  "notice_until": "15/11/2026 08:55",
+  "notice_updated": "14/11/2026 14:06",
+  "notice_until": "15/11/2026 14:06",
   "notice_show_once": true,
   "apps": [
     {
